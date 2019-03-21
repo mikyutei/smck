@@ -19,15 +19,33 @@ extern uint8_t is_master;
 #define _ADJUST 16
 
 
+// const char N_GETA[26][1] PROGMEM = {
+//   "a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","w","x","y","z"
+// };
+
+const char N_GETA_V[5][1] PROGMEM = {
+  "a","i","u","e","o"
+};
+
+const char N_GETA_C[19][1] PROGMEM = {
+  "k","s","t","n","h",
+  "m","y","r","w","g",
+  "z","d","b","p","q",
+  "x","f","v","j"
+};
+
+const char N_GETA_3[12][2] PROGMEM = {
+  "ky","gy","sy","zy","ty",
+  "ny","hy","by","py","my",
+  "ry","xy"
+};
 
 
 enum custom_keycodes {
   QWERTY = SAFE_RANGE,
   LOWER,
   RAISE,
-  ADJUST,
-  BACKLIT,
-  RGBRST
+  ADJUST
 };
 
 enum macro_keycodes {
@@ -39,15 +57,6 @@ enum macro_keycodes {
 #define KC_LOWER LOWER
 #define KC_RAISE RAISE
 #define KC_RST   RESET
-#define KC_LRST  RGBRST
-#define KC_LTOG  RGB_TOG
-#define KC_LHUI  RGB_HUI
-#define KC_LHUD  RGB_HUD
-#define KC_LSAI  RGB_SAI
-#define KC_LSAD  RGB_SAD
-#define KC_LVAI  RGB_VAI
-#define KC_LVAD  RGB_VAD
-#define KC_LMOD  RGB_MOD
 #define KC_CTLTB CTL_T(KC_TAB)
 #define KC_GUIEI GUI_T(KC_LANG2)
 #define KC_ALTKN ALT_T(KC_LANG1)
@@ -378,9 +387,12 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   )
 };
 
-void persistent_default_layer_set(uint16_t default_layer) {
-  eeconfig_update_default_layer(default_layer);
-  default_layer_set(default_layer);
+// void persistent_default_layer_set(uint16_t default_layer) {
+//   eeconfig_update_default_layer(default_layer);
+//   default_layer_set(default_layer);
+// }
+
+void matrix_scan_user(void) {
 }
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
@@ -391,7 +403,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
   switch (keycode) {
     case QWERTY:
       if (record->event.pressed) {
-        persistent_default_layer_set(1UL<<_QWERTY);
+        // persistent_default_layer_set(1UL<<_QWERTY);
       }
       return false;
       break;
