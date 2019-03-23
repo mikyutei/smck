@@ -22,17 +22,9 @@ extern uint8_t is_master;
 // Layer names don't all need to be of the same length, obviously, and you can also skip them
 // entirely and just use numbers.
 #define _QWERTY 0
-#define _LOWER 16
-#define _RAISE 17
-#define _ADJUST 18
-
-#define _N_GETA 2
-#define _N_GETA_L 3
-#define _N_GETA_R 4
-#define _N_GETA_TL 5
-#define _N_GETA_TR 6
-#define _N_GETA_CR 7
-#define _N_GETA_CL 8
+#define _LOWER 3
+#define _RAISE 4
+#define _ADJUST 16
 
 enum custom_keycodes {
   QWERTY = SAFE_RANGE,
@@ -40,274 +32,13 @@ enum custom_keycodes {
   RAISE,
   ADJUST,
   BACKLIT,
-  RGBRST,
+  RGBRST
 };
 
-
-//macro setting
-char macro_buf[30];
-
-
-
-enum new_geta {
-  NG_A = RGBRST + 1,
-  NG_I,
-  NG_U,
-  NG_E,
-  NG_O,
-  NG_KYA,
-  NG_KYI,
-  NG_KYU,
-  NG_KYE,
-  NG_KYO,
-  NG_GYA,
-  NG_GYI,
-  NG_GYU,
-  NG_GYE,
-  NG_GYO,
-  NG_SYA,
-  NG_SYI,
-  NG_SYU,
-  NG_SYE,
-  NG_SYO,
-  NG_ZYA,
-  NG_ZYI,
-  NG_ZYU,
-  NG_ZYE,
-  NG_ZYO,
-  NG_TYA,
-  NG_TYI,
-  NG_TYU,
-  NG_TYE,
-  NG_TYO,
-  NG_NYA,
-  NG_NYI,
-  NG_NYU,
-  NG_NYE,
-  NG_NYO,
-  NG_HYA,
-  NG_HYI,
-  NG_HYU,
-  NG_HYE,
-  NG_HYO,
-  NG_BYA,
-  NG_BYI,
-  NG_BYU,
-  NG_BYE,
-  NG_BYO,
-  NG_PYA,
-  NG_PYI,
-  NG_PYU,
-  NG_PYE,
-  NG_PYO,
-  NG_MYA,
-  NG_MYI,
-  NG_MYU,
-  NG_MYE,
-  NG_MYO,
-  NG_RYA,
-  NG_RYI,
-  NG_RYU,
-  NG_RYE,
-  NG_RYO,
-  NG_XYA,
-  NG_XYU,
-  NG_XYO,
-  NG_XTU,
-  NG_KA,
-  NG_KI,
-  NG_KU,
-  NG_KE,
-  NG_KO,
-  NG_SA,
-  NG_SI,
-  NG_SU,
-  NG_SE,
-  NG_SO,
-  NG_TA,
-  NG_TI,
-  NG_TU,
-  NG_TE,
-  NG_TO,
-  NG_NA,
-  NG_NI,
-  NG_NU,
-  NG_NE,
-  NG_NO,
-  NG_HA,
-  NG_HI,
-  NG_HU,
-  NG_HE,
-  NG_HO,
-  NG_MA,
-  NG_MI,
-  NG_MU,
-  NG_ME,
-  NG_MO,
-  NG_RA,
-  NG_RI,
-  NG_RU,
-  NG_RE,
-  NG_RO,
-  NG_GA,
-  NG_GI,
-  NG_GU,
-  NG_GE,
-  NG_GO,
-  NG_ZA,
-  NG_ZI,
-  NG_ZU,
-  NG_ZE,
-  NG_ZO,
-  NG_DA,
-  NG_DI,
-  NG_DU,
-  NG_DE,
-  NG_DO,
-  NG_BA,
-  NG_BI,
-  NG_BU,
-  NG_BE,
-  NG_BO,
-  NG_PA,
-  NG_PI,
-  NG_PU,
-  NG_PE,
-  NG_PO,
-  NG_XA,
-  NG_XI,
-  NG_XU,
-  NG_XE,
-  NG_XO,
-  NG_VA,
-  NG_VI,
-  NG_VU,
-  NG_VE,
-  NG_VO,
-  NG_JA,
-  NG_JU,
-  NG_JE,
-  NG_JO,
-  NG_QA,
-  NG_QI,
-  NG_QE,
-  NG_QO,
-  NG_YA,
-  NG_YU,
-  NG_YE,
-  NG_YO,
-  NG_WA,
-  NG_WI,
-  NG_WE,
-  NG_WO,
-  NG_FA,
-  NG_FI,
-  NG_FE,
-  NG_FO,
-  NG_NN
+enum macro_keycodes {
+  KC_SAMPLEMACRO,
 };
 
-
-// const char N_GETA_V[5][1] PROGMEM = {
-//   "a","i","u","e","o"
-// };
-
-// const char N_GETA_C[19][1] PROGMEM = {
-//   "k","s","t","n","h",
-//   "m","y","r","w","g",
-//   "z","d","b","p","q",
-//   "x","f","v","j"
-// };
-
-// const char N_GETA_3[12][2] PROGMEM = {
-//   "ky","gy","sy","zy","ty",
-//   "ny","hy","by","py","my",
-//   "ry","xy"
-// };
-
-
-
-const char PROGMEM N_GETA_1[5][2] = {
-  "a","i","u","e","o"
-};
-
-const char PROGMEM N_GETA_2[91][3] = {
-"ka", "ki", "ku", "ke", "ko",
-"sa", "si", "su", "se", "so",
-"ta", "ti", "tu", "te", "to",
-"na", "ni", "nu", "ne", "no",
-"ha", "hi", "hu", "he", "ho",
-"ma", "mi", "mu", "me", "mo",
-"ra", "ri", "ru", "re", "ro",
-"ga", "gi", "gu", "ge", "go",
-"za", "zi", "zu", "ze", "zo",
-"da", "di", "du", "de", "do",
-"ba", "bi", "bu", "be", "bo",
-"pa", "pi", "pu", "pe", "po",
-"xa", "xi", "xu", "xe", "xo",
-"va", "vi", "vu", "ve", "vo",
-"ja", "ju", "je", "jo",
-"qa", "qi", "qe", "qo",
-"ya", "yu", "ye", "yo",
-"wa", "wi", "we", "wo",
-"fa", "fi", "fe", "fo",
-"nn"
-};
-
-const char PROGMEM N_GETA_3[59][4] = {
-"kya", "kyi", "kyu", "kye", "kyo",
-"gya", "gyi", "gyu", "gye", "gyo",
-"sya", "syi", "syu", "sye", "syo",
-"zya", "zyi", "zyu", "zye", "zyo",
-"tya", "tyi", "tyu", "tye", "tyo",
-"nya", "nyi", "nyu", "nye", "nyo",
-"hya", "hyi", "hyu", "hye", "hyo",
-"bya", "byi", "byu", "bye", "byo",
-"pya", "pyi", "pyu", "pye", "pyo",
-"mya", "myi", "myu", "mye", "myo",
-"rya", "ryi", "ryu", "rye", "ryo",
-"xya", "xyu", "xyo",
-"xtu"
-};
-
-//japanese or english IME status on keyboard
-bool is_new_gata = false;
-
-//a
-bool is_input = false;
-
-// macro_buf set only new geta layout char
-void set_new_geta_string(const char * src) {
-  strcpy_P(macro_buf,src);
-}
-
-uint16_t b = NG_A;
-
-bool process_record_new_gata(uint16_t keycode, keyrecord_t *record){
-
-if (record->event.pressed) {
-  is_input = true;
-} else {
-  is_input = false;
-}
-
-if (keycode >= NG_A && NG_NN >= keycode) {
-  if(NG_KA < keycode) {
-    set_new_geta_string(&N_GETA_2[(uint8_t)(keycode - NG_KA)][0]);
-  }else if (NG_KYA < keycode) {
-    set_new_geta_string(&N_GETA_3[(uint8_t)(keycode - NG_KYA)][0]);
-  }else {
-    set_new_geta_string(&N_GETA_1[(uint8_t)( keycode - NG_A) ][0]);
-  }
-  return false;
-}
-
-return true;
-}
-
-
-#define KC_TO TO
-#define KC_MO MO
 #define KC______ KC_TRNS
 #define KC_XXXXX KC_NO
 #define KC_LOWER LOWER
@@ -326,29 +57,39 @@ return true;
 #define KC_GUIEI GUI_T(KC_LANG2)
 #define KC_ALTKN ALT_T(KC_LANG1)
 
-
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
-  [_QWERTY] = LAYOUT( \
+  [_QWERTY] = LAYOUT_kc( \
   //,-----------------------------------------.                ,-----------------------------------------.
-      TO(_N_GETA),    NG_GA,    KC_W,     KC_MS_ACCEL0,     KC_R,     KC_T, KC_Y,     KC_MS_BTN1,     KC_MS_UP,     KC_MS_BTN2,     KC_MS_WH_UP,  KC_BSPC,\
+        BSPC,     Y,     P,     O,     U,     J,                      K,     D,     L,     C,     W,  BSPC,\
   //|------+------+------+------+------+------|                |------+------+------+------+------+------|
-      TO(_LOWER),NG_A,    KC_S,     KC_MS_ACCEL1,     KC_F,     KC_G, KC_H,     KC_MS_LEFT,     KC_MS_DOWN,     KC_MS_RIGHT,  KC_MS_WH_DOWN,  KC_QUOT,\
+      CTLTB,     I,     N,     E,     A,     COMM,                      M,     H,     T,     S,  R,  QUOT,\
   //|------+------+------+------+------+------|                |------+------+------+------+------+------|
-      KC_LSFT, NG_O,      KC_X,     KC_MS_ACCEL2,     KC_V,     KC_B, KC_N,     KC_M,  KC_COMM,   KC_DOT ,  KC_SLSH,  KC_RSFT,\
+       LSFT,     Q,     Z,     SLSH,     DOT,     QUOT,                      B,     F,  G,   V,  X,  RSFT,\
   //|------+------+------+------+------+------+------|  |------+------+------+------+------+------+------|
-                                  KC_ALTKN, KC_MHEN,   KC_ENT,      KC_SPC, KC_HENK, KC_GUIEI \
+                                  GUIEI, RAISE,   SPC,      LSFT, RAISE, ALTKN \
                               //`--------------------'  `--------------------'
   ),
 
   [_LOWER] = LAYOUT_kc( \
   //,-----------------------------------------.                ,-----------------------------------------.
-        BSPC,     Y,     P,     O,     U,     J,                      K,     D,     L,     C,     W,  BSPC,\
+        ESC,     1,     2,     3,     4,     5,                      6,     7,     8,     9,     0,  BSPC,\
   //|------+------+------+------+------+------|                |------+------+------+------+------+------|
-      TO(_QWERTY),     I,     N,     E,     A,     COMM,                      M,     H,     T,     S,  R,  QUOT,\
+      CTLTB,    F1,    F2,    F3,    F4,    F5,                     F6,    F7,    F8,    F9,   F10, XXXXX,\
   //|------+------+------+------+------+------|                |------+------+------+------+------+------|
-       LSFT,     Q,     Z,     SLSH,     DOT,     QUOT,                      B,     F,  G,   V,  X,  RSFT,\
+       LSFT,   F11,   F12,   F13,   F14,   F15,                    F16,   F17,   F18,   F19,   F20, XXXXX,\
   //|------+------+------+------+------+------+------|  |------+------+------+------+------+------+------|
-                                  GUIEI, MO(_RAISE),   SPC,      LSFT, MO(_RAISE), ALTKN \
+                                  GUIEI, LOWER,   SPC,      ENT, RAISE, ALTKN \
+                              //`--------------------'  `--------------------'
+  ),
+  [_ADJUST] = LAYOUT_kc( \
+  //,-----------------------------------------.                ,-----------------------------------------.
+        ESC,  EXLM,    AT,  HASH,   DLR,  PERC,                   CIRC,  AMPR,  ASTR,  LPRN,  RPRN,  BSPC,\
+  //|------+------+------+------+------+------|                |------+------+------+------+------+------|
+      CTLTB, XXXXX, XXXXX, XXXXX, XXXXX, XXXXX,                   MINS,   EQL,  LCBR,  RCBR,  PIPE,   GRV,\
+  //|------+------+------+------+------+------|                |------+------+------+------+------+------|
+       LSFT, XXXXX, XXXXX, XXXXX, XXXXX, XXXXX,                   UNDS,  PLUS,  LBRC,  RBRC,  BSLS,  TILD,\
+  //|------+------+------+------+------+------+------|  |------+------+------+------+------+------+------|
+                                  GUIEI, LOWER,   SPC,      ENT, RAISE, ALTKN \
                               //`--------------------'  `--------------------'
   ),
 
@@ -362,36 +103,13 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   //|------+------+------+------+------+------+------|  |------+------+------+------+------+------+------|
                                   GUIEI, LOWER,   SPC,      ENT, RAISE, ALTKN \
                               //`--------------------'  `--------------------'
-  ),
-
-  [_ADJUST] = LAYOUT_kc( \
-  //,-----------------------------------------.                ,-----------------------------------------.
-        RST,  LRST, XXXXX, XXXXX, XXXXX, XXXXX,                  XXXXX, XXXXX, XXXXX, XXXXX, XXXXX, XXXXX,\
-  //|------+------+------+------+------+------|                |------+------+------+------+------+------|
-       LTOG,  LHUI,  LSAI,  LVAI, XXXXX, XXXXX,                  XXXXX, XXXXX, XXXXX, XXXXX, XXXXX, XXXXX,\
-  //|------+------+------+------+------+------|                |------+------+------+------+------+------|
-       LMOD,  LHUD,  LSAD,  LVAD, XXXXX, XXXXX,                  XXXXX, XXXXX, XXXXX, XXXXX, XXXXX, XXXXX,\
-  //|------+------+------+------+------+------+------|  |------+------+------+------+------+------+------|
-                                  GUIEI, LOWER,   SPC,      ENT, RAISE, ALTKN \
-                              //`--------------------'  `--------------------'
-  ),
-  [_N_GETA] = LAYOUT( \
-  //,-----------------------------------------.                ,-----------------------------------------.
-      KC_NO, NG_GE, NG_NI, NG_HA, KC_COMM, NG_TI,                NG_GU, NG_BA, NG_KO, NG_GA, NG_HI, KC_NO,\
-  //|------+------+------+------+------+------|                |------+------+------+------+------+------|
-      KC_NO, NG_NO, NG_TO, NG_KA, NG_NN, NG_XTU,                 NG_KU, NG_U, NG_I, NG_SI, NG_NA, KC_NO,\
-  //|------+------+------+------+------+------|                |------+------+------+------+------+------|
-      KC_NO, NG_SU, NG_MA, NG_KI, NG_RU, NG_TU,                  NG_TE, NG_TA, NG_DE, KC_DOT, NG_BU, KC_NO,\
-  //|------+------+------+------+------+------+------|  |------+------+------+------+------+------+------|
-                                  KC_NO, KC_NO,   KC_NO,      KC_NO, KC_NO, KC_NO \
-                              //`--------------------'  `--------------------'
   )
 };
 
 int RGB_current_mode;
 
 void persistent_default_layer_set(uint16_t default_layer) {
-  //eeconfig_update_default_layer(default_layer);
+  eeconfig_update_default_layer(default_layer);
   default_layer_set(default_layer);
 }
 
@@ -445,10 +163,6 @@ void matrix_render_user(struct CharacterMatrix *matrix) {
   } else {
     matrix_write(matrix, read_logo());
   }
-
-  if(is_input && is_new_gata) {
-    send_string(macro_buf);
-  }
 }
 
 void matrix_update(struct CharacterMatrix *dest, const struct CharacterMatrix *source) {
@@ -466,7 +180,6 @@ void iota_gfx_task_user(void) {
 }
 #endif//SSD1306OLED
 
-
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
   if (record->event.pressed) {
 #ifdef SSD1306OLED
@@ -474,10 +187,6 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 #endif
     // set_timelog();
   }
-
-   if(is_new_gata && process_record_new_gata(keycode, record)){
-     return false;
-   }
 
   switch (keycode) {
     case QWERTY:
@@ -533,38 +242,6 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         }
       #endif
       break;
-      case NG_GA:
-      if(record->event.pressed) {
-        // send_string_P(str[0]);
-        send_string(N_GETA_1[0]);
-      }
-      return false;
-      case NG_A:
-      if(record->event.pressed) {
-        // send_string_P(str[1]);
-        send_string(N_GETA_2[2]);
-      }
-      return false;
-      case NG_O:
-      if(record->event.pressed) {
-        if (b >= NG_A && NG_NN >= b) {
-          if(NG_KA < b) {
-            set_new_geta_string(&N_GETA_2[(uint8_t)(b - NG_KA)][0]);
-          }else if (NG_KYA < b) {
-            set_new_geta_string(&N_GETA_3[(uint8_t)(b - NG_KYA)][0]);
-          }else {
-            set_new_geta_string(&N_GETA_1[(uint8_t)( b - NG_A) ][0]);
-          }
-        }
-        send_string(macro_buf);
-        b++;
-        // send_string_P(str[1]);
-        // char a[10];
-        // strcpy_P(a,N_GETA_3[7]);
-        // send_string(a);
-        // send_string(&N_GETA_1[0]);
-      }
-      return true;
   }
   return true;
 }
