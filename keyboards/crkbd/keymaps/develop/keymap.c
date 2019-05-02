@@ -289,7 +289,7 @@ const char PROGMEM N_GETA_3[74][4] = {
 };
 
 //japanese or english IME status on keyboard
-bool is_new_gata = false;
+bool is_new_gata = true;
 
 //input or not input use sendString
 bool is_input = false;
@@ -315,7 +315,7 @@ bool is_input_time(uint16_t keycode) {
     previous_keycode = keycode;
     key_repeat_timer = timer_read();
     return true;
-  } else if(KEY_REPEAT_DERAY < (key_repeat_timer - timer_read()) ) {
+  } else if(KEY_REPEAT_DERAY < timer_elapsed(key_repeat_timer)) {
     key_repeat_timer = timer_read();
     return true;
   }
@@ -329,7 +329,7 @@ int is_input_timea(uint16_t keycode) {
     previous_keycode = keycode;
     key_repeat_timer = timer_read();
     return -1;
-  } else if(KEY_REPEAT_DERAY < (timer_read() - key_repeat_timer ) ) {
+  } else if(KEY_REPEAT_DERAY < timer_elapsed(key_repeat_timer) ) {
     key_repeat_timer = timer_read();
     return (int)(timer_read() - key_repeat_timer);
   }
