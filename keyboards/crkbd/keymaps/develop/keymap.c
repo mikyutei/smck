@@ -15,6 +15,7 @@ extern keymap_config_t keymap_config;
 extern rgblight_config_t rgblight_config;
 #endif
 
+
 extern uint8_t is_master;
 
 // Each layer gets a name for readability, which is then used in the keymap matrix below.
@@ -34,15 +35,6 @@ extern uint8_t is_master;
 #define _N_GETA_CR 7
 #define _N_GETA_CL 8
 
-enum custom_keycodes {
-  QWERTY = SAFE_RANGE,
-  LOWER,
-  RAISE,
-  ADJUST,
-  BACKLIT,
-  RGBRST,
-};
-
 
 //macro setting
 char macro_buf[30];
@@ -50,7 +42,7 @@ char macro_buf[30];
 
 
 enum new_geta {
-  NG_A = RGBRST + 1,
+  NG_A = SAFE_RANGE,
   NG_I,
   NG_U,
   NG_E,
@@ -80,6 +72,21 @@ enum new_geta {
   NG_TYU,
   NG_TYE,
   NG_TYO,
+  NG_DYA,
+  NG_DYI,
+  NG_DYU,
+  NG_DYE,
+  NG_DYO,
+  NG_THA,
+  NG_THI,
+  NG_THU,
+  NG_THE,
+  NG_THO,
+  NG_DHA,
+  NG_DHI,
+  NG_DHU,
+  NG_DHE,
+  NG_DHO,
   NG_NYA,
   NG_NYI,
   NG_NYU,
@@ -184,10 +191,6 @@ enum new_geta {
   NG_VU,
   NG_VE,
   NG_VO,
-  NG_JA,
-  NG_JU,
-  NG_JE,
-  NG_JO,
   NG_QA,
   NG_QI,
   NG_QE,
@@ -204,10 +207,21 @@ enum new_geta {
   NG_FI,
   NG_FE,
   NG_FO,
-  NG_NN
+  NG_NN,
+  NG_LATEST
 };
 
+enum custom_keycodes {
+  QWERTY = NG_LATEST,
+  LOWER,
+  RAISE,
+  ADJUST,
+  BACKLIT,
+  RGBRST,
+};
+//uint32_t AAAAA = millis();
 
+uint16_t b = NG_A;
 // const char N_GETA_V[5][1] PROGMEM = {
 //   "a","i","u","e","o"
 // };
@@ -231,7 +245,7 @@ const char PROGMEM N_GETA_1[5][2] = {
   "a","i","u","e","o"
 };
 
-const char PROGMEM N_GETA_2[91][3] = {
+const char PROGMEM N_GETA_2[87][3] = {
 "ka", "ki", "ku", "ke", "ko",
 "sa", "si", "su", "se", "so",
 "ta", "ti", "tu", "te", "to",
@@ -246,7 +260,6 @@ const char PROGMEM N_GETA_2[91][3] = {
 "pa", "pi", "pu", "pe", "po",
 "xa", "xi", "xu", "xe", "xo",
 "va", "vi", "vu", "ve", "vo",
-"ja", "ju", "je", "jo",
 "qa", "qi", "qe", "qo",
 "ya", "yu", "ye", "yo",
 "wa", "wi", "we", "wo",
@@ -254,12 +267,15 @@ const char PROGMEM N_GETA_2[91][3] = {
 "nn"
 };
 
-const char PROGMEM N_GETA_3[59][4] = {
+const char PROGMEM N_GETA_3[74][4] = {
 "kya", "kyi", "kyu", "kye", "kyo",
 "gya", "gyi", "gyu", "gye", "gyo",
 "sya", "syi", "syu", "sye", "syo",
 "zya", "zyi", "zyu", "zye", "zyo",
 "tya", "tyi", "tyu", "tye", "tyo",
+"dya", "dyi", "dyu", "dye", "dyo",
+"tha", "thi", "thu", "the", "tho",
+"dha", "dhi", "dhu", "dhe", "dho",
 "nya", "nyi", "nyu", "nye", "nyo",
 "hya", "hyi", "hyu", "hye", "hyo",
 "bya", "byi", "byu", "bye", "byo",
@@ -273,31 +289,68 @@ const char PROGMEM N_GETA_3[59][4] = {
 //japanese or english IME status on keyboard
 bool is_new_gata = false;
 
-//a
+//input or not input use sendString
 bool is_input = false;
+
+// 文字送信間隔のためのtimer
+uint16_t key_repeat_timer = 0;
+
+//同じ文字列か判定用
+uint16_t previous_keycode = 0;
+uint16_t current_keycode = 0;
+
+#define KEY_REPEAT_DERAY 10
 
 // macro_buf set only new geta layout char
 void set_new_geta_string(const char * src) {
   strcpy_P(macro_buf,src);
 }
 
-uint16_t b = NG_A;
+// 入力可能時間か確認
+bool is_input_time(uint16_t keycode) {
+
+  if(keycode != previous_keycode) {
+    previous_keycode = keycode;
+    key_repeat_timer = timer_read();
+    return true;
+  } else if(KEY_REPEAT_DERAY < (key_repeat_timer - timer_read()) ) {
+    key_repeat_timer = timer_read();
+    return true;
+  }
+  return false;
+}
+
+// 入力可能時間か確認
+int is_input_timea(uint16_t keycode) {
+
+  if(keycode != previous_keycode) {
+    previous_keycode = keycode;
+    key_repeat_timer = timer_read();
+    return -1;
+  } else if(KEY_REPEAT_DERAY < (timer_read() - key_repeat_timer ) ) {
+    key_repeat_timer = timer_read();
+    return (int)(timer_read() - key_repeat_timer);
+  }
+  return 1;
+}
 
 bool process_record_new_gata(uint16_t keycode, keyrecord_t *record){
 
-if (record->event.pressed) {
-  is_input = true;
-} else {
+if (!record->event.pressed) {
   is_input = false;
 }
 
 if (keycode >= NG_A && NG_NN >= keycode) {
-  if(NG_KA < keycode) {
+  if(NG_KA <= keycode) {
     set_new_geta_string(&N_GETA_2[(uint8_t)(keycode - NG_KA)][0]);
-  }else if (NG_KYA < keycode) {
+  }else if (NG_KYA <= keycode) {
     set_new_geta_string(&N_GETA_3[(uint8_t)(keycode - NG_KYA)][0]);
   }else {
     set_new_geta_string(&N_GETA_1[(uint8_t)( keycode - NG_A) ][0]);
+  }
+
+  if (record->event.pressed) {
+    is_input = true;
   }
   return false;
 }
@@ -446,7 +499,7 @@ void matrix_render_user(struct CharacterMatrix *matrix) {
     matrix_write(matrix, read_logo());
   }
 
-  if(is_input && is_new_gata) {
+  if(is_input && is_input_time(current_keycode) && is_new_gata) {
     send_string(macro_buf);
   }
 }
@@ -475,7 +528,9 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     // set_timelog();
   }
 
-   if(is_new_gata && process_record_new_gata(keycode, record)){
+   current_keycode = keycode;
+
+   if(is_new_gata && !process_record_new_gata(keycode, record)){
      return false;
    }
 
@@ -542,21 +597,28 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
       case NG_A:
       if(record->event.pressed) {
         // send_string_P(str[1]);
-        send_string(N_GETA_2[2]);
+        //send_string(N_GETA_2[2]);
+        b = NG_A;
       }
       return false;
       case NG_O:
       if(record->event.pressed) {
         if (b >= NG_A && NG_NN >= b) {
-          if(NG_KA < b) {
+          if(NG_KA <= b) {
             set_new_geta_string(&N_GETA_2[(uint8_t)(b - NG_KA)][0]);
-          }else if (NG_KYA < b) {
+            //sprintf(macro_buf,"%d",((uint8_t)(b - NG_KA)));
+          }else if (NG_KYA <= b) {
             set_new_geta_string(&N_GETA_3[(uint8_t)(b - NG_KYA)][0]);
+            //sprintf(macro_buf,"%d",((uint8_t)(b - NG_KYA)));
           }else {
             set_new_geta_string(&N_GETA_1[(uint8_t)( b - NG_A) ][0]);
+            //sprintf(macro_buf,"%d",((uint8_t)(b - NG_A)));
           }
         }
-        send_string(macro_buf);
+
+        sprintf(macro_buf,"%d", is_input_timea(keycode));
+        //send_string(macro_buf);
+        tap_code(KC_A);
         b++;
         // send_string_P(str[1]);
         // char a[10];
@@ -564,7 +626,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         // send_string(a);
         // send_string(&N_GETA_1[0]);
       }
-      return true;
+      return false;
   }
   return true;
 }
