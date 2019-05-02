@@ -322,20 +322,6 @@ bool is_input_time(uint16_t keycode) {
   return false;
 }
 
-// 入力可能時間か確認
-int is_input_timea(uint16_t keycode) {
-
-  if(keycode != previous_keycode) {
-    previous_keycode = keycode;
-    key_repeat_timer = timer_read();
-    return -1;
-  } else if(KEY_REPEAT_DERAY < timer_elapsed(key_repeat_timer) ) {
-    key_repeat_timer = timer_read();
-    return (int)(timer_read() - key_repeat_timer);
-  }
-  return 1;
-}
-
 bool process_record_new_gata(uint16_t keycode, keyrecord_t *record){
 
 if (!record->event.pressed) {
@@ -618,7 +604,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
           }
         }
 
-        sprintf(macro_buf,"%d", is_input_timea(keycode));
+        sprintf(macro_buf,"%d", is_input_time(keycode));
         //send_string(macro_buf);
         tap_code(KC_A);
         b++;
