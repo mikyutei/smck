@@ -40,9 +40,19 @@ extern uint8_t is_master;
 char macro_buf[30];
 
 
+enum custom_keycodes {
+  QWERTY = SAFE_RANGE,
+  LOWER,
+  RAISE,
+  ADJUST,
+  BACKLIT,
+  RGBRST,
+  NG_FIRST
+};
+
 
 enum new_geta {
-  NG_A = SAFE_RANGE,
+  NG_A = NG_FIRST,
   NG_I,
   NG_U,
   NG_E,
@@ -211,14 +221,6 @@ enum new_geta {
   NG_LATEST
 };
 
-enum custom_keycodes {
-  QWERTY = NG_LATEST,
-  LOWER,
-  RAISE,
-  ADJUST,
-  BACKLIT,
-  RGBRST,
-};
 //uint32_t AAAAA = millis();
 
 uint16_t b = NG_A;
