@@ -28,12 +28,12 @@ extern uint8_t is_master;
 #define _ADJUST 18
 
 #define _N_GETA 2
-#define _N_GETA_L 3
-#define _N_GETA_R 4
-#define _N_GETA_TL 5
-#define _N_GETA_TR 6
-#define _N_GETA_CR 7
-#define _N_GETA_CL 8
+#define _N_GETA_MIDDLE 3
+#define _N_GETA_RING 4
+#define _N_GETA_MIDDLE_TOP 5
+#define _N_GETA_RING_TOP 6
+#define _N_GETA_LITTLE_L 7
+#define _N_GETA_LITTLE_R 8
 
 
 //macro setting
@@ -47,6 +47,12 @@ enum custom_keycodes {
   ADJUST,
   BACKLIT,
   RGBRST,
+  THUMB_LL,
+  THUMB_LC,
+  THUMB_LR,
+  THUMB_RL,
+  THUMB_RC,
+  THUMB_RR,
   NG_FIRST
 };
 
@@ -131,6 +137,8 @@ enum new_geta {
   NG_XYU,
   NG_XYO,
   NG_XTU,
+  NG_XWA,
+  NG_UXO,
   NG_KA,
   NG_KI,
   NG_KU,
@@ -217,6 +225,10 @@ enum new_geta {
   NG_FI,
   NG_FE,
   NG_FO,
+  NG_JA,
+  NG_JU,
+  NG_JE,
+  NG_JO,
   NG_NN,
   NG_LATEST
 };
@@ -247,7 +259,7 @@ const char PROGMEM N_GETA_1[5][2] = {
   "a","i","u","e","o"
 };
 
-const char PROGMEM N_GETA_2[87][3] = {
+const char PROGMEM N_GETA_2[91][3] = {
 "ka", "ki", "ku", "ke", "ko",
 "sa", "si", "su", "se", "so",
 "ta", "ti", "tu", "te", "to",
@@ -266,10 +278,11 @@ const char PROGMEM N_GETA_2[87][3] = {
 "ya", "yu", "ye", "yo",
 "wa", "wi", "we", "wo",
 "fa", "fi", "fe", "fo",
+"ja", "ju", "je", "jo",
 "nn"
 };
 
-const char PROGMEM N_GETA_3[74][4] = {
+const char PROGMEM N_GETA_3[76][4] = {
 "kya", "kyi", "kyu", "kye", "kyo",
 "gya", "gyi", "gyu", "gye", "gyo",
 "sya", "syi", "syu", "sye", "syo",
@@ -284,15 +297,12 @@ const char PROGMEM N_GETA_3[74][4] = {
 "pya", "pyi", "pyu", "pye", "pyo",
 "mya", "myi", "myu", "mye", "myo",
 "rya", "ryi", "ryu", "rye", "ryo",
-"xya", "xyu", "xyo",
-"xtu"
+"xya", "xyu", "xyo", "xtu", "xwa",
+"uxo"
 };
 
 //japanese or english IME status on keyboard
 bool is_new_gata = true;
-
-//input or not input use sendString
-bool is_input = false;
 
 // 文字送信間隔のためのtimer
 uint16_t key_repeat_timer = 0;
@@ -324,28 +334,24 @@ bool is_input_time(uint16_t keycode) {
 
 bool process_record_new_gata(uint16_t keycode, keyrecord_t *record){
 
-if (!record->event.pressed) {
-  is_input = false;
-}
+  if (!record->event.pressed && keycode >= NG_A && NG_NN >= keycode) {
+    if(NG_KA <= keycode) {
+      set_new_geta_string(&N_GETA_2[(uint8_t)(keycode - NG_KA)][0]);
+    }else if (NG_KYA <= keycode) {
+      set_new_geta_string(&N_GETA_3[(uint8_t)(keycode - NG_KYA)][0]);
+    }else {
+      set_new_geta_string(&N_GETA_1[(uint8_t)( keycode - NG_A) ][0]);
+    }
 
-if (keycode >= NG_A && NG_NN >= keycode) {
-  if(NG_KA <= keycode) {
-    set_new_geta_string(&N_GETA_2[(uint8_t)(keycode - NG_KA)][0]);
-  }else if (NG_KYA <= keycode) {
-    set_new_geta_string(&N_GETA_3[(uint8_t)(keycode - NG_KYA)][0]);
-  }else {
-    set_new_geta_string(&N_GETA_1[(uint8_t)( keycode - NG_A) ][0]);
+    send_string(macro_buf);
+
+    return false;
   }
 
-  if (record->event.pressed) {
-    is_input = true;
-  }
-  return false;
+  return true;
 }
 
-return true;
-}
-
+bool IS_INPUT = false;
 
 #define KC_TO TO
 #define KC_MO MO
@@ -426,6 +432,72 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   //|------+------+------+------+------+------+------|  |------+------+------+------+------+------+------|
                                   KC_NO, KC_NO,   KC_NO,      KC_NO, KC_NO, KC_NO \
                               //`--------------------'  `--------------------'
+  ),
+    [_N_GETA_MIDDLE] = LAYOUT( \
+  //,-----------------------------------------.                ,-----------------------------------------.
+      KC_NO, NG_FA, NG_GO, NG_HU, NG_FI, NG_FE,                NG_WI, NG_PA, NG_YO, NG_MI, NG_WE, KC_NO,\
+  //|------+------+------+------+------+------|                |------+------+------+------+------+------|
+      KC_NO, NG_HO, NG_ZI, NG_RE, NG_MO, NG_YU,                 NG_HE, NG_A, NG_XYA, NG_XYU, NG_E, KC_NO,\
+  //|------+------+------+------+------+------|                |------+------+------+------+------+------|
+      KC_NO, NG_ZU, NG_ZO, NG_BO, NG_MU, NG_FO,                  NG_SE, NG_NE, NG_BE, NG_PU, NG_VU, KC_NO,\
+  //|------+------+------+------+------+------+------|  |------+------+------+------+------+------+------|
+                                  KC_NO, KC_NO,   KC_NO,      KC_NO, KC_NO, KC_NO \
+                              //`--------------------'  `--------------------'
+  ),
+      [_N_GETA_RING] = LAYOUT( \
+  //,-----------------------------------------.                ,-----------------------------------------.
+      KC_NO, NG_DI, NG_ME, NG_KE, NG_THI, NG_DHI,                NG_SYE, NG_PE, NG_DO, NG_YA, NG_JE, KC_NO,\
+  //|------+------+------+------+------+------|                |------+------+------+------+------+------|
+      KC_NO, NG_WO, NG_SA, NG_O, NG_RI, NG_ZU,                    NG_BI, NG_RA, NG_XYO,  NG_XWA,  NG_SO, KC_NO,\
+  //|------+------+------+------+------+------|                |------+------+------+------+------+------|
+      KC_NO, NG_ZE, NG_ZA, NG_GI, NG_RO, NG_NU,                  NG_WA, NG_DA, NG_PI, NG_PO, NG_TYE, KC_NO,\
+  //|------+------+------+------+------+------+------|  |------+------+------+------+------+------+------|
+                                  KC_NO, KC_NO,   KC_NO,      KC_NO, KC_NO, KC_NO \
+                              //`--------------------'  `--------------------'
+  ),
+      [_N_GETA_MIDDLE_TOP] = LAYOUT( \
+  //,-----------------------------------------.                ,-----------------------------------------.
+      KC_NO, NG_HYU, NG_SYU, NG_SYO, NG_KYU, NG_TYU,            NG_MYA, NG_BYA,NG_PYA, KC_NO, KC_NO, KC_NO,\
+  //|------+------+------+------+------+------|                |------+------+------+------+------+------|
+      KC_NO, NG_HYO, NG_XA, NG_XI, NG_KYO, NG_TYO,              NG_MYU, NG_BYU,NG_PYU, KC_NO, KC_NO, KC_NO,\
+  //|------+------+------+------+------+------|                |------+------+------+------+------+------|
+      KC_NO, NG_HYA, NG_XU, NG_SYA, NG_KYA, NG_TYA,             NG_MYO, NG_BYO,NG_PYO, KC_NO, KC_NO, KC_NO,\
+  //|------+------+------+------+------+------+------|  |------+------+------+------+------+------+------|
+                                  KC_NO, KC_NO,   KC_NO,      KC_NO, KC_NO, KC_NO \
+                              //`--------------------'  `--------------------'
+  ),
+      [_N_GETA_RING_TOP] = LAYOUT( \
+  //,-----------------------------------------.                ,-----------------------------------------.
+      KC_NO, NG_RYU, NG_JU, NG_JO, NG_GYU, NG_NYU,                KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO,\
+  //|------+------+------+------+------+------|                |------+------+------+------+------+------|
+      KC_NO, NG_RYO, NG_XE, NG_XO, NG_GYO, NG_NYO,                 KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO,\
+  //|------+------+------+------+------+------|                |------+------+------+------+------+------|
+      KC_NO, NG_RYA, NG_UXO, NG_JA, NG_GYA, NG_NYA,                  KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO,\
+  //|------+------+------+------+------+------+------|  |------+------+------+------+------+------+------|
+                                  KC_NO, KC_NO,   KC_NO,      KC_NO, KC_NO, KC_NO \
+                              //`--------------------'  `--------------------'
+  ),
+        [_N_GETA_LITTLE_R] = LAYOUT( \
+  //,-----------------------------------------.                ,-----------------------------------------.
+      KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO,                KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO,\
+  //|------+------+------+------+------+------|                |------+------+------+------+------+------|
+      KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO,                 KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO,\
+  //|------+------+------+------+------+------|                |------+------+------+------+------+------|
+      KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO,                  KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO,\
+  //|------+------+------+------+------+------+------|  |------+------+------+------+------+------+------|
+                                  KC_NO, KC_NO,   KC_NO,      KC_NO, KC_NO, KC_NO \
+                              //`--------------------'  `--------------------'
+  ),
+      [_N_GETA_LITTLE_L] = LAYOUT( \
+  //,-----------------------------------------.                ,-----------------------------------------.
+      KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO,                KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO,\
+  //|------+------+------+------+------+------|                |------+------+------+------+------+------|
+      KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO,                 KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO,\
+  //|------+------+------+------+------+------|                |------+------+------+------+------+------|
+      KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO,                  KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO,\
+  //|------+------+------+------+------+------+------|  |------+------+------+------+------+------+------|
+                                  KC_NO, KC_NO,   KC_NO,      KC_NO, KC_NO, KC_NO \
+                              //`--------------------'  `--------------------'
   )
 };
 
@@ -487,9 +559,6 @@ void matrix_render_user(struct CharacterMatrix *matrix) {
     matrix_write(matrix, read_logo());
   }
 
-  if(is_input && is_input_time(current_keycode) && is_new_gata) {
-    send_string(macro_buf);
-  }
 }
 
 void matrix_update(struct CharacterMatrix *dest, const struct CharacterMatrix *source) {
@@ -516,11 +585,13 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     // set_timelog();
   }
 
-   current_keycode = keycode;
-
-   if(is_new_gata && !process_record_new_gata(keycode, record)){
-     return false;
-   }
+  if(current_keycode == keycode){
+    IS_INPUT = false;
+  } else {
+    IS_INPUT = true;
+  }
+  previous_keycode = current_keycode;
+  current_keycode = keycode;
 
   switch (keycode) {
     case QWERTY:
@@ -576,46 +647,143 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         }
       #endif
       break;
-      case NG_GA:
+      case NG_NN:
       if(record->event.pressed) {
-        // send_string_P(str[0]);
-        send_string(N_GETA_1[0]);
-      }
-      return false;
-      case NG_A:
-      if(record->event.pressed) {
-        // send_string_P(str[1]);
-        //send_string(N_GETA_2[2]);
-        b = NG_A;
-      }
-      return false;
-      case NG_O:
-      if(record->event.pressed) {
-        if (b >= NG_A && NG_NN >= b) {
-          if(NG_KA <= b) {
-            set_new_geta_string(&N_GETA_2[(uint8_t)(b - NG_KA)][0]);
-            //sprintf(macro_buf,"%d",((uint8_t)(b - NG_KA)));
-          }else if (NG_KYA <= b) {
-            set_new_geta_string(&N_GETA_3[(uint8_t)(b - NG_KYA)][0]);
-            //sprintf(macro_buf,"%d",((uint8_t)(b - NG_KYA)));
-          }else {
-            set_new_geta_string(&N_GETA_1[(uint8_t)( b - NG_A) ][0]);
-            //sprintf(macro_buf,"%d",((uint8_t)(b - NG_A)));
-          }
+        layer_on(_N_GETA_MIDDLE);
+        return false;
+      } else{
+        layer_off(_N_GETA_MIDDLE);
+        if(IS_INPUT){
+          return false;
         }
-
-        sprintf(macro_buf,"%d", is_input_time(keycode));
-        //send_string(macro_buf);
-        tap_code(KC_A);
-        b++;
-        // send_string_P(str[1]);
-        // char a[10];
-        // strcpy_P(a,N_GETA_3[7]);
-        // send_string(a);
-        // send_string(&N_GETA_1[0]);
       }
+      break;
+      case NG_NO:
+      if(record->event.pressed) {
+        layer_on(_N_GETA_RING);
+        return false;
+      } else{
+        layer_off(_N_GETA_RING);
+        if(IS_INPUT){
+          return false;
+        }
+      }
+      break;
+
+      case THUMB_LL:
+      if(record->event.pressed) {
+        layer_on(_N_GETA_RING);
+        return false;
+      } else{
+        layer_off(_N_GETA_RING);
+        if(IS_INPUT){
+          return false;
+        }
+      }
+      break;
+      case THUMB_LC:
+      if(record->event.pressed) {
+        layer_on(_N_GETA_RING);
+        return false;
+      } else{
+        layer_off(_N_GETA_RING);
+        if(IS_INPUT){
+          return false;
+        }
+      }
+      break;
+      case THUMB_LR:
+      if(record->event.pressed) {
+        layer_on(_N_GETA_RING);
+        return false;
+      } else{
+        layer_off(_N_GETA_RING);
+        if(IS_INPUT){
+          return false;
+        }
+      }
+      break;
+      case THUMB_RL:
+      if(record->event.pressed) {
+        layer_on(_N_GETA_RING);
+        return false;
+      } else{
+        layer_off(_N_GETA_RING);
+        if(IS_INPUT){
+          return false;
+        }
+      }
+      break;
+      case THUMB_RC:
+      if(record->event.pressed) {
+        layer_on(_N_GETA_RING);
+        return false;
+      } else{
+        layer_off(_N_GETA_RING);
+        if(IS_INPUT){
+          return false;
+        }
+      }
+      break;
+      case THUMB_RR:
+      if(record->event.pressed) {
+        layer_on(_N_GETA_RING);
+        return false;
+      } else{
+        layer_off(_N_GETA_RING);
+        if(IS_INPUT){
+          return false;
+        }
+      }
+      break;
+      // case NG_GA:
+      // if(record->event.pressed) {
+      //   // send_string_P(str[0]);
+      //   send_string(N_GETA_1[0]);
+      // }
+      // return false;
+      // case NG_A:
+      // if(record->event.pressed) {
+      //   // send_string_P(str[1]);
+      //   //send_string(N_GETA_2[2]);
+      //   SEND_STRING("a");
+      //   b = NG_A;
+      // }
+      // return false;
+      // case NG_O:
+      // if(record->event.pressed) {
+      //   if (b >= NG_A && NG_NN >= b) {
+      //     if(NG_KA <= b) {
+      //       set_new_geta_string(&N_GETA_2[(uint8_t)(b - NG_KA)][0]);
+      //       //sprintf(macro_buf,"%d",((uint8_t)(b - NG_KA)));
+      //     }else if (NG_KYA <= b) {
+      //       set_new_geta_string(&N_GETA_3[(uint8_t)(b - NG_KYA)][0]);
+      //       //sprintf(macro_buf,"%d",((uint8_t)(b - NG_KYA)));
+      //     }else {
+      //       set_new_geta_string(&N_GETA_1[(uint8_t)( b - NG_A) ][0]);
+      //       //sprintf(macro_buf,"%d",((uint8_t)(b - NG_A)));
+      //     }
+      //   }
+
+      //   sprintf(macro_buf,"%d", is_input_time(keycode));
+      //   //send_string(macro_buf);
+      //   tap_code(KC_A);
+      //   b++;
+      //   // send_string_P(str[1]);
+      //   // char a[10];
+      //   // strcpy_P(a,N_GETA_3[7]);
+      //   // send_string(a);
+      //   // send_string(&N_GETA_1[0]);
+      // }
       return false;
   }
+
+     if(is_new_gata && !process_record_new_gata(keycode, record)){
+       //IS_INPUT = true;
+       return false;
+    }
+
+
   return true;
 }
 
