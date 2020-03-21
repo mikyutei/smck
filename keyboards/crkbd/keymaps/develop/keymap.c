@@ -4,50 +4,56 @@
   #include "lufa.h"
   #include "split_util.h"
 #endif
-#ifdef SSD1306OLED
-  #include "ssd1306.h"
-#endif
 
 extern keymap_config_t keymap_config;
 
-#ifdef RGBLIGHT_ENABLE
-//Following line allows macro to read current RGB settings
-extern rgblight_config_t rgblight_config;
-#endif
-
 
 extern uint8_t is_master;
+
+#include "keymap_ichikawa.h"
 
 // Each layer gets a name for readability, which is then used in the keymap matrix below.
 // The underscores don't mean anything - you can have a layer called STUFF or any other name.
 // Layer names don't all need to be of the same length, obviously, and you can also skip them
 // entirely and just use numbers.
-#define _QWERTY 0
-#define _LOWER 16
-#define _RAISE 17
-#define _ADJUST 18
-
+#define _MTGAP 0
+#define _MTGAP_SHIFT 1
 #define _N_GETA 2
-#define _N_GETA_MIDDLE 3
-#define _N_GETA_RING 4
-#define _N_GETA_MIDDLE_TOP 5
-#define _N_GETA_RING_TOP 6
-#define _N_GETA_LITTLE_L 7
-#define _N_GETA_LITTLE_R 8
-
+#define _N_GETA_MIDDLE 3 //いか
+#define _N_GETA_RING 4 //しと
+#define _N_GETA_MIDDLE_TOP 5 //こは
+#define _N_GETA_RING_TOP 6 //がに
+#define _N_GETA_LITTLE_L 7 //の
+#define _N_GETA_LITTLE_R 8 //な
+#define _NO_KEY_LAYOUT_0 9
+#define _NO_KEY_LAYOUT_1 10
+#define _NO_KEY_LAYOUT_2 11
+#define _NO_KEY_LAYOUT_3 12
+#define _NO_KEY_LAYOUT_4 13
+#define _NO_KEY_LAYOUT_5 14
+#define _NO_KEY_LAYOUT_6 15
+#define _NO_KEY_LAYOUT_7 16
+#define _NO_KEY_LAYOUT_8 17
+#define _NO_KEY_LAYOUT_9 18
+#define _NO_KEY_LAYOUT_A 19
+#define _NO_KEY_LAYOUT_B 20
+#define _NO_KEY_LAYOUT_C 21
+#define _NO_KEY_LAYOUT_D 22
+#define _NO_KEY_LAYOUT_E 23
+#define _NO_KEY_LAYOUT_F 24
+#define _NO_KEY_LAYOUT_G 25
+#define _NO_KEY_LAYOUT_H 26
+#define _NO_KEY_LAYOUT_I 27
+#define _QWERTY 28
+#define _NUM_LAYER 29
+#define _SYMBOL_LAYER 30
 
 //macro setting
 char macro_buf[30];
 
 
 enum custom_keycodes {
-  QWERTY = SAFE_RANGE,
-  LOWER,
-  RAISE,
-  ADJUST,
-  BACKLIT,
-  RGBRST,
-  THUMB_LL,
+  THUMB_LL = SAFE_RANGE,
   THUMB_LC,
   THUMB_LR,
   THUMB_RL,
@@ -302,7 +308,7 @@ const char PROGMEM N_GETA_3[76][4] = {
 };
 
 //japanese or english IME status on keyboard
-bool is_new_gata = true;
+bool is_new_gata = false;
 
 // 文字送信間隔のためのtimer
 uint16_t key_repeat_timer = 0;
@@ -310,8 +316,6 @@ uint16_t key_repeat_timer = 0;
 //同じ文字列か判定用
 uint16_t previous_keycode = 0;
 uint16_t current_keycode = 0;
-
-#define KEY_REPEAT_DERAY 10
 
 // macro_buf set only new geta layout char
 void set_new_geta_string(const char * src) {
@@ -347,243 +351,300 @@ bool process_record_new_gata(uint16_t keycode, keyrecord_t *record){
 
     return false;
   }
-
   return true;
 }
 
 bool IS_INPUT = false;
 
-#define KC_TO TO
-#define KC_MO MO
-#define KC______ KC_TRNS
-#define KC_XXXXX KC_NO
-#define KC_LOWER LOWER
-#define KC_RAISE RAISE
-#define KC_RST   RESET
-#define KC_LRST  RGBRST
-#define KC_LTOG  RGB_TOG
-#define KC_LHUI  RGB_HUI
-#define KC_LHUD  RGB_HUD
-#define KC_LSAI  RGB_SAI
-#define KC_LSAD  RGB_SAD
-#define KC_LVAI  RGB_VAI
-#define KC_LVAD  RGB_VAD
-#define KC_LMOD  RGB_MOD
-#define KC_CTLTB CTL_T(KC_TAB)
-#define KC_GUIEI GUI_T(KC_LANG2)
-#define KC_ALTKN ALT_T(KC_LANG1)
+//inputed_layer[_THUMB_LL]
+//inputed_layer[_THUMB_LC]
+//inputed_layer[_THUMB_RC]
+#define _THUMB_LL 0
+#define _THUMB_LC 1
+#define _THUMB_LR 2
+#define _THUMB_RL 3
+#define _THUMB_RC 4
+#define _THUMB_RR 5
+#define _LAYER_NUM 6
+uint8_t pressed_num = 0;
+uint8_t inputed_layer[_LAYER_NUM] = {
+  0,0,0,0,0,0
+};
+
+void release_custom_layer(uint8_t index) {
+  for (int i = 0; i< _LAYER_NUM;i++){
+    if (inputed_layer[i] > inputed_layer[index]) {
+      inputed_layer[i]--;
+    }
+  }
+  inputed_layer[index] = 0;
+  pressed_num--;
+}
+
+void pressed_custom_layer(uint8_t index) {
+  pressed_num++;
+  inputed_layer[index] = pressed_num;
+}
+
+uint16_t key_tapping_timer = 0;
+void set_tapping_timer(void){
+  key_tapping_timer = timer_read();
+}
+// tapかどうか
+bool is_tapped(void) {
+  if(KEY_TAPPING_TERM >= timer_elapsed(key_tapping_timer)) {
+    set_tapping_timer();
+    return true;
+  }
+  return false;
+}
+
+bool process_record_custom_layer(uint16_t keycode, keyrecord_t *record, bool is_inputted){
+  if (pressed_num >= 3) return false;
+
+  if(inputed_layer[_THUMB_LL] == 1) {
+    if(inputed_layer[_THUMB_LC] == 2) {
+        if(record->event.pressed) {
+          set_tapping_timer();
+          return true;
+        }else {
+          if(!is_inputted && is_tapped()) {
+            register_code(KC_9);
+            unregister_code(KC_9);
+          }
+          return true;
+        }
+    }
+    else if(inputed_layer[_THUMB_RC] == 2) {
+        if(record->event.pressed) {
+          set_tapping_timer();
+          return true;
+        }else {
+          if(!is_inputted && is_tapped()) {
+            register_code(KC_4);
+            unregister_code(KC_4);
+          }
+          return true;
+        }
+    }
+    if(record->event.pressed) {
+      set_tapping_timer();
+      return true;
+    }else {
+      if(!is_inputted && is_tapped()) {
+        register_code(KC_1);
+        unregister_code(KC_1);
+      }
+      return true;
+    }
+  }
+
+  else if(inputed_layer[_THUMB_LC] == 1) {
+    if(inputed_layer[_THUMB_LL] == 2) {
+        if(record->event.pressed) {
+          set_tapping_timer();
+          return true;
+        }else {
+          if(!is_inputted && is_tapped()) {
+            register_code(KC_5);
+            unregister_code(KC_5);
+          }
+          return true;
+        }
+    }
+    else if(inputed_layer[_THUMB_RC] == 2) {
+        if(record->event.pressed) {
+          set_tapping_timer();
+          return true;
+        }else {
+          if(!is_inputted && is_tapped()) {
+            register_code(KC_6);
+            unregister_code(KC_6);
+          }
+          return true;
+        }
+    }
+    if(record->event.pressed) {
+      set_tapping_timer();
+      return true;
+    }else {
+      if(!is_inputted && is_tapped()) {
+        register_code(KC_MHEN);
+        unregister_code(KC_MHEN);
+        is_new_gata = false;
+        layer_off(_N_GETA);
+      }
+      return true;
+    }
+  }
+
+  else if(inputed_layer[_THUMB_RC] == 1) {
+    if(inputed_layer[_THUMB_LL] == 2) {
+        if(record->event.pressed) {
+          set_tapping_timer();
+          return true;
+        }else {
+          if(!is_inputted && is_tapped()) {
+            register_code(KC_7);
+            unregister_code(KC_7);
+          }
+          return true;
+        }
+    }
+    else if(inputed_layer[_THUMB_LC] == 2) {
+        if(record->event.pressed) {
+          set_tapping_timer();
+          return true;
+        }else {
+          if(!is_inputted && is_tapped()) {
+            register_code(KC_8);
+            unregister_code(KC_8);
+          }
+          return true;
+        }
+    }
+    if(record->event.pressed) {
+      set_tapping_timer();
+      return true;
+    }else {
+      if(!is_inputted && is_tapped()) {
+        register_code(KC_HENK);
+        unregister_code(KC_HENK);
+        is_new_gata = true;
+        layer_on(_N_GETA);
+      }
+      return true;
+    }
+  }
+
+  return false;
+}
+
+// char itoa(uint16_t value) {
+//   char a[255];
+//   itoa(value,a,10);
+//   return a;
+// }
+
+
 
 
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
-  [_QWERTY] = LAYOUT( \
+  [_NO_KEY_LAYOUT_I] = LAYOUT( \
+  //,-----------------------------------------.                ,-----------------------------------------.
+    KC_TRNS, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO,                KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_TRNS,\
+  //|------+------+------+------+------+------|                |------+------+------+------+------+------|
+    KC_TRNS, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO,                 KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_TRNS,\
+  //|------+------+------+------+------+------|                |------+------+------+------+------+------|
+    KC_TRNS, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO,                  KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_TRNS,\
+  //|------+------+------+------+------+------+------|  |------+------+------+------+------+------+------|
+                               KC_TRNS,KC_TRNS,KC_TRNS, KC_TRNS,KC_TRNS,KC_TRNS \
+                              //`--------------------'  `--------------------'
+  ),
+  [_MTGAP] = LAYOUT( \
   //,-----------------------------------------.                ,-----------------------------------------.
       TO(_N_GETA),    NG_GA,    KC_W,     KC_MS_ACCEL0,     KC_R,     KC_T, KC_Y,     KC_MS_BTN1,     KC_MS_UP,     KC_MS_BTN2,     KC_MS_WH_UP,  KC_BSPC,\
   //|------+------+------+------+------+------|                |------+------+------+------+------+------|
-      TO(_LOWER),NG_A,    KC_S,     KC_MS_ACCEL1,     KC_F,     KC_G, KC_H,     KC_MS_LEFT,     KC_MS_DOWN,     KC_MS_RIGHT,  KC_MS_WH_DOWN,  KC_QUOT,\
+      TO(0),NG_A,    THUMB_LL,     THUMB_LC,     THUMB_RC,     KC_G, KC_H,     KC_MS_LEFT,     KC_MS_DOWN,     KC_MS_RIGHT,  KC_MS_WH_DOWN,  KC_QUOT,\
   //|------+------+------+------+------+------|                |------+------+------+------+------+------|
       KC_LSFT, NG_O,      KC_X,     KC_MS_ACCEL2,     KC_V,     KC_B, KC_N,     KC_M,  KC_COMM,   KC_DOT ,  KC_SLSH,  KC_RSFT,\
   //|------+------+------+------+------+------+------|  |------+------+------+------+------+------+------|
-                                  KC_ALTKN, KC_MHEN,   KC_ENT,      KC_SPC, KC_HENK, KC_GUIEI \
+                                  THUMB_RC, THUMB_LC,   KC_ENT,      KC_SPC, THUMB_RC, KC_NO \
                               //`--------------------'  `--------------------'
   ),
 
-  [_LOWER] = LAYOUT_kc( \
-  //,-----------------------------------------.                ,-----------------------------------------.
-        BSPC,     Y,     P,     O,     U,     J,                      K,     D,     L,     C,     W,  BSPC,\
-  //|------+------+------+------+------+------|                |------+------+------+------+------+------|
-      TO(_QWERTY),     I,     N,     E,     A,     COMM,                      M,     H,     T,     S,  R,  QUOT,\
-  //|------+------+------+------+------+------|                |------+------+------+------+------+------|
-       LSFT,     Q,     Z,     SLSH,     DOT,     QUOT,                      B,     F,  G,   V,  X,  RSFT,\
-  //|------+------+------+------+------+------+------|  |------+------+------+------+------+------+------|
-                                  GUIEI, MO(_RAISE),   SPC,      LSFT, MO(_RAISE), ALTKN \
-                              //`--------------------'  `--------------------'
-  ),
-
-  [_RAISE] = LAYOUT_kc( \
-  //,-----------------------------------------.                ,-----------------------------------------.
-        RST,  Y, P, O, U, J,                  XXXXX, XXXXX, XXXXX, XXXXX, XXXXX, XXXXX,\
-  //|------+------+------+------+------+------|                |------+------+------+------+------+------|
-       LTOG,  I,  N,  E, A, SCLN,                  XXXXX, XXXXX, XXXXX, XXXXX, XXXXX, XXXXX,\
-  //|------+------+------+------+------+------|                |------+------+------+------+------+------|
-       LMOD,  Q,  Z,  LT, GT, QUES,                  XXXXX, XXXXX, XXXXX, XXXXX, XXXXX, XXXXX,\
-  //|------+------+------+------+------+------+------|  |------+------+------+------+------+------+------|
-                                  GUIEI, LOWER,   SPC,      ENT, RAISE, ALTKN \
-                              //`--------------------'  `--------------------'
-  ),
-
-  [_ADJUST] = LAYOUT_kc( \
-  //,-----------------------------------------.                ,-----------------------------------------.
-        RST,  LRST, XXXXX, XXXXX, XXXXX, XXXXX,                  XXXXX, XXXXX, XXXXX, XXXXX, XXXXX, XXXXX,\
-  //|------+------+------+------+------+------|                |------+------+------+------+------+------|
-       LTOG,  LHUI,  LSAI,  LVAI, XXXXX, XXXXX,                  XXXXX, XXXXX, XXXXX, XXXXX, XXXXX, XXXXX,\
-  //|------+------+------+------+------+------|                |------+------+------+------+------+------|
-       LMOD,  LHUD,  LSAD,  LVAD, XXXXX, XXXXX,                  XXXXX, XXXXX, XXXXX, XXXXX, XXXXX, XXXXX,\
-  //|------+------+------+------+------+------+------|  |------+------+------+------+------+------+------|
-                                  GUIEI, LOWER,   SPC,      ENT, RAISE, ALTKN \
-                              //`--------------------'  `--------------------'
-  ),
   [_N_GETA] = LAYOUT( \
   //,-----------------------------------------.                ,-----------------------------------------.
-      KC_NO, NG_GE, NG_NI, NG_HA, KC_COMM, NG_TI,                NG_GU, NG_BA, NG_KO, NG_GA, NG_HI, KC_NO,\
+    KC_TRNS, NG_GE, NG_NI, NG_HA, KC_COMM, NG_TI,                NG_GU, NG_BA, NG_KO, NG_GA, NG_HI, KC_TRNS,\
   //|------+------+------+------+------+------|                |------+------+------+------+------+------|
-      KC_NO, NG_NO, NG_TO, NG_KA, NG_NN, NG_XTU,                 NG_KU, NG_U, NG_I, NG_SI, NG_NA, KC_NO,\
+    KC_TRNS, NG_NO, NG_TO, NG_KA, NG_NN, NG_XTU,                 NG_KU, NG_U, NG_I, NG_SI, NG_NA, KC_TRNS,\
   //|------+------+------+------+------+------|                |------+------+------+------+------+------|
-      KC_NO, NG_SU, NG_MA, NG_KI, NG_RU, NG_TU,                  NG_TE, NG_TA, NG_DE, KC_DOT, NG_BU, KC_NO,\
+    KC_TRNS, NG_SU, NG_MA, NG_KI, NG_RU, NG_TU,                  NG_TE, NG_TA, NG_DE, KC_DOT, NG_BU, KC_TRNS,\
   //|------+------+------+------+------+------+------|  |------+------+------+------+------+------+------|
-                                  KC_NO, KC_NO,   KC_NO,      KC_NO, KC_NO, KC_NO \
+                               KC_TRNS,KC_TRNS,KC_TRNS, KC_TRNS,KC_TRNS,KC_TRNS \
                               //`--------------------'  `--------------------'
   ),
-    [_N_GETA_MIDDLE] = LAYOUT( \
+  [_N_GETA_MIDDLE] = LAYOUT( \
   //,-----------------------------------------.                ,-----------------------------------------.
-      KC_NO, NG_FA, NG_GO, NG_HU, NG_FI, NG_FE,                NG_WI, NG_PA, NG_YO, NG_MI, NG_WE, KC_NO,\
+    KC_TRNS, NG_FA, NG_GO, NG_HU, NG_FI, NG_FE,                NG_WI, NG_PA, NG_YO, NG_MI, NG_WE, KC_TRNS,\
   //|------+------+------+------+------+------|                |------+------+------+------+------+------|
-      KC_NO, NG_HO, NG_ZI, NG_RE, NG_MO, NG_YU,                 NG_HE, NG_A, NG_XYA, NG_XYU, NG_E, KC_NO,\
+    KC_TRNS, NG_HO, NG_ZI, NG_RE, NG_MO, NG_YU,                 NG_HE, NG_A, NG_XYA, NG_XYU, NG_E, KC_TRNS,\
   //|------+------+------+------+------+------|                |------+------+------+------+------+------|
-      KC_NO, NG_ZU, NG_ZO, NG_BO, NG_MU, NG_FO,                  NG_SE, NG_NE, NG_BE, NG_PU, NG_VU, KC_NO,\
+    KC_TRNS, NG_ZU, NG_ZO, NG_BO, NG_MU, NG_FO,                  NG_SE, NG_NE, NG_BE, NG_PU, NG_VU, KC_TRNS,\
   //|------+------+------+------+------+------+------|  |------+------+------+------+------+------+------|
-                                  KC_NO, KC_NO,   KC_NO,      KC_NO, KC_NO, KC_NO \
+                               KC_TRNS,KC_TRNS,KC_TRNS, KC_TRNS,KC_TRNS,KC_TRNS \
                               //`--------------------'  `--------------------'
   ),
-      [_N_GETA_RING] = LAYOUT( \
+  [_N_GETA_RING] = LAYOUT( \
   //,-----------------------------------------.                ,-----------------------------------------.
-      KC_NO, NG_DI, NG_ME, NG_KE, NG_THI, NG_DHI,                NG_SYE, NG_PE, NG_DO, NG_YA, NG_JE, KC_NO,\
+    KC_TRNS, NG_DI, NG_ME, NG_KE, NG_THI, NG_DHI,                NG_SYE, NG_PE, NG_DO, NG_YA, NG_JE, KC_TRNS,\
   //|------+------+------+------+------+------|                |------+------+------+------+------+------|
-      KC_NO, NG_WO, NG_SA, NG_O, NG_RI, NG_ZU,                    NG_BI, NG_RA, NG_XYO,  NG_XWA,  NG_SO, KC_NO,\
+    KC_TRNS, NG_WO, NG_SA, NG_O, NG_RI, NG_ZU,                    NG_BI, NG_RA, NG_XYO,  NG_XWA,  NG_SO, KC_TRNS,\
   //|------+------+------+------+------+------|                |------+------+------+------+------+------|
-      KC_NO, NG_ZE, NG_ZA, NG_GI, NG_RO, NG_NU,                  NG_WA, NG_DA, NG_PI, NG_PO, NG_TYE, KC_NO,\
+    KC_TRNS, NG_ZE, NG_ZA, NG_GI, NG_RO, NG_NU,                  NG_WA, NG_DA, NG_PI, NG_PO, NG_TYE, KC_TRNS,\
   //|------+------+------+------+------+------+------|  |------+------+------+------+------+------+------|
-                                  KC_NO, KC_NO,   KC_NO,      KC_NO, KC_NO, KC_NO \
+                               KC_TRNS,KC_TRNS,KC_TRNS, KC_TRNS,KC_TRNS,KC_TRNS \
                               //`--------------------'  `--------------------'
   ),
-      [_N_GETA_MIDDLE_TOP] = LAYOUT( \
+  [_N_GETA_MIDDLE_TOP] = LAYOUT( \
   //,-----------------------------------------.                ,-----------------------------------------.
-      KC_NO, NG_HYU, NG_SYU, NG_SYO, NG_KYU, NG_TYU,            NG_MYA, NG_BYA,NG_PYA, KC_NO, KC_NO, KC_NO,\
+    KC_TRNS, NG_HYU, NG_SYU, NG_SYO, NG_KYU, NG_TYU,            NG_MYA, NG_BYA,NG_PYA, KC_NO, KC_NO, KC_TRNS,\
   //|------+------+------+------+------+------|                |------+------+------+------+------+------|
-      KC_NO, NG_HYO, NG_XA, NG_XI, NG_KYO, NG_TYO,              NG_MYU, NG_BYU,NG_PYU, KC_NO, KC_NO, KC_NO,\
+    KC_TRNS, NG_HYO, NG_XA, NG_XI, NG_KYO, NG_TYO,              NG_MYU, NG_BYU,NG_PYU, KC_NO, KC_NO, KC_TRNS,\
   //|------+------+------+------+------+------|                |------+------+------+------+------+------|
-      KC_NO, NG_HYA, NG_XU, NG_SYA, NG_KYA, NG_TYA,             NG_MYO, NG_BYO,NG_PYO, KC_NO, KC_NO, KC_NO,\
+    KC_TRNS, NG_HYA, NG_XU, NG_SYA, NG_KYA, NG_TYA,             NG_MYO, NG_BYO,NG_PYO, KC_NO, KC_NO, KC_TRNS,\
   //|------+------+------+------+------+------+------|  |------+------+------+------+------+------+------|
-                                  KC_NO, KC_NO,   KC_NO,      KC_NO, KC_NO, KC_NO \
+                               KC_TRNS,KC_TRNS,KC_TRNS, KC_TRNS,KC_TRNS,KC_TRNS \
                               //`--------------------'  `--------------------'
   ),
-      [_N_GETA_RING_TOP] = LAYOUT( \
+  [_N_GETA_RING_TOP] = LAYOUT( \
   //,-----------------------------------------.                ,-----------------------------------------.
-      KC_NO, NG_RYU, NG_JU, NG_JO, NG_GYU, NG_NYU,                KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO,\
+    KC_TRNS, NG_RYU, NG_JU, NG_JO, NG_GYU, NG_NYU,                KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_TRNS,\
   //|------+------+------+------+------+------|                |------+------+------+------+------+------|
-      KC_NO, NG_RYO, NG_XE, NG_XO, NG_GYO, NG_NYO,                 KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO,\
+    KC_TRNS, NG_RYO, NG_XE, NG_XO, NG_GYO, NG_NYO,                 KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_TRNS,\
   //|------+------+------+------+------+------|                |------+------+------+------+------+------|
-      KC_NO, NG_RYA, NG_UXO, NG_JA, NG_GYA, NG_NYA,                  KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO,\
+    KC_TRNS, NG_RYA, NG_UXO, NG_JA, NG_GYA, NG_NYA,                  KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_TRNS,\
   //|------+------+------+------+------+------+------|  |------+------+------+------+------+------+------|
-                                  KC_NO, KC_NO,   KC_NO,      KC_NO, KC_NO, KC_NO \
+                               KC_TRNS,KC_TRNS,KC_TRNS, KC_TRNS,KC_TRNS,KC_TRNS \
                               //`--------------------'  `--------------------'
   ),
-        [_N_GETA_LITTLE_R] = LAYOUT( \
+  [_N_GETA_LITTLE_R] = LAYOUT( \
   //,-----------------------------------------.                ,-----------------------------------------.
-      KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO,                KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO,\
+    KC_TRNS, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO,                KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_TRNS,\
   //|------+------+------+------+------+------|                |------+------+------+------+------+------|
-      KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO,                 KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO,\
+    KC_TRNS, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO,                 KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_TRNS,\
   //|------+------+------+------+------+------|                |------+------+------+------+------+------|
-      KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO,                  KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO,\
+    KC_TRNS, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO,                  KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_TRNS,\
   //|------+------+------+------+------+------+------|  |------+------+------+------+------+------+------|
-                                  KC_NO, KC_NO,   KC_NO,      KC_NO, KC_NO, KC_NO \
+                               KC_TRNS,KC_TRNS,KC_TRNS, KC_TRNS,KC_TRNS,KC_TRNS \
                               //`--------------------'  `--------------------'
   ),
-      [_N_GETA_LITTLE_L] = LAYOUT( \
+  [_N_GETA_LITTLE_L] = LAYOUT( \
   //,-----------------------------------------.                ,-----------------------------------------.
-      KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO,                KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO,\
+    KC_TRNS, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO,                KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_TRNS,\
   //|------+------+------+------+------+------|                |------+------+------+------+------+------|
-      KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO,                 KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO,\
+    KC_TRNS, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO,                 KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_TRNS,\
   //|------+------+------+------+------+------|                |------+------+------+------+------+------|
-      KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO,                  KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO,\
+    KC_TRNS, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO,                  KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_TRNS,\
   //|------+------+------+------+------+------+------|  |------+------+------+------+------+------+------|
-                                  KC_NO, KC_NO,   KC_NO,      KC_NO, KC_NO, KC_NO \
+                               KC_TRNS,KC_TRNS,KC_TRNS, KC_TRNS,KC_TRNS,KC_TRNS \
+                              //`--------------------'  `--------------------'
+  ),
+  [_QWERTY] = LAYOUT( \
+  //,-----------------------------------------.                ,-----------------------------------------.
+    KC_TRNS,  KC_Q,  KC_W,  KC_E,  KC_R,  KC_T,                   KC_Y,  KC_U,  KC_I,  KC_O,  KC_P,KC_TRNS,\
+  //|------+------+------+------+------+------|                |------+------+------+------+------+------|
+    KC_TRNS,  KC_A,  KC_S,  KC_D,  KC_F,  KC_G,                   KC_H,  KC_J,  KC_K,  KC_L,KC_SCLN,KC_TRNS,\
+  //|------+------+------+------+------+------|                |------+------+------+------+------+------|
+    KC_TRNS,  KC_Z,  KC_X,  KC_C,  KC_V,  KC_B,                   KC_N,  KC_M,KC_COMM,KC_DOT,KC_SLSH,KC_TRNS,\
+  //|------+------+------+------+------+------+------|  |------+------+------+------+------+------+------|
+                               KC_TRNS,KC_TRNS,KC_TRNS, KC_TRNS,KC_TRNS,KC_TRNS \
                               //`--------------------'  `--------------------'
   )
 };
 
-int RGB_current_mode;
-
-void persistent_default_layer_set(uint16_t default_layer) {
-  //eeconfig_update_default_layer(default_layer);
-  default_layer_set(default_layer);
-}
-
-// Setting ADJUST layer RGB back to default
-void update_tri_layer_RGB(uint8_t layer1, uint8_t layer2, uint8_t layer3) {
-  if (IS_LAYER_ON(layer1) && IS_LAYER_ON(layer2)) {
-    layer_on(layer3);
-  } else {
-    layer_off(layer3);
-  }
-}
-
-void matrix_init_user(void) {
-    #ifdef RGBLIGHT_ENABLE
-      RGB_current_mode = rgblight_config.mode;
-    #endif
-    //SSD1306 OLED init, make sure to add #define SSD1306OLED in config.h
-    #ifdef SSD1306OLED
-        iota_gfx_init(!has_usb());   // turns on the display
-    #endif
-}
-
-//SSD1306 OLED update loop, make sure to add #define SSD1306OLED in config.h
-#ifdef SSD1306OLED
-
-// When add source files to SRC in rules.mk, you can use functions.
-const char *read_layer_state(void);
-const char *read_logo(void);
-void set_keylog(uint16_t keycode, keyrecord_t *record);
-const char *read_keylog(void);
-const char *read_keylogs(void);
-
-// const char *read_mode_icon(bool swap);
-// const char *read_host_led_state(void);
-// void set_timelog(void);
-// const char *read_timelog(void);
-
-void matrix_scan_user(void) {
-   iota_gfx_task();
-}
-
-void matrix_render_user(struct CharacterMatrix *matrix) {
-  if (is_master) {
-    // If you want to change the display of OLED, you need to change here
-    matrix_write_ln(matrix, read_layer_state());
-    matrix_write_ln(matrix, read_keylog());
-    matrix_write_ln(matrix, read_keylogs());
-    //matrix_write_ln(matrix, read_mode_icon(keymap_config.swap_lalt_lgui));
-    //matrix_write_ln(matrix, read_host_led_state());
-    //matrix_write_ln(matrix, read_timelog());
-  } else {
-    matrix_write(matrix, read_logo());
-  }
-
-}
-
-void matrix_update(struct CharacterMatrix *dest, const struct CharacterMatrix *source) {
-  if (memcmp(dest->display, source->display, sizeof(dest->display))) {
-    memcpy(dest->display, source->display, sizeof(dest->display));
-    dest->dirty = true;
-  }
-}
-
-void iota_gfx_task_user(void) {
-  struct CharacterMatrix matrix;
-  matrix_clear(&matrix);
-  matrix_render_user(&matrix);
-  matrix_update(&display, &matrix);
-}
-#endif//SSD1306OLED
-
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
-  if (record->event.pressed) {
-#ifdef SSD1306OLED
-    set_keylog(keycode, record);
-#endif
-    // set_timelog();
-  }
 
   if(current_keycode == keycode){
     IS_INPUT = false;
@@ -594,60 +655,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
   current_keycode = keycode;
 
   switch (keycode) {
-    case QWERTY:
-      if (record->event.pressed) {
-        persistent_default_layer_set(1UL<<_QWERTY);
-      }
-      return false;
-      break;
-    case LOWER:
-      if (record->event.pressed) {
-        layer_on(_LOWER);
-        update_tri_layer_RGB(_LOWER, _RAISE, _ADJUST);
-      } else {
-        layer_off(_LOWER);
-        update_tri_layer_RGB(_LOWER, _RAISE, _ADJUST);
-      }
-      return false;
-      break;
-    case RAISE:
-      if (record->event.pressed) {
-        layer_on(_RAISE);
-        update_tri_layer_RGB(_LOWER, _RAISE, _ADJUST);
-      } else {
-        layer_off(_RAISE);
-        update_tri_layer_RGB(_LOWER, _RAISE, _ADJUST);
-      }
-      return false;
-      break;
-    case ADJUST:
-        if (record->event.pressed) {
-          layer_on(_ADJUST);
-        } else {
-          layer_off(_ADJUST);
-        }
-        return false;
-        break;
-    case RGB_MOD:
-      #ifdef RGBLIGHT_ENABLE
-        if (record->event.pressed) {
-          rgblight_mode(RGB_current_mode);
-          rgblight_step();
-          RGB_current_mode = rgblight_config.mode;
-        }
-      #endif
-      return false;
-      break;
-    case RGBRST:
-      #ifdef RGBLIGHT_ENABLE
-        if (record->event.pressed) {
-          eeconfig_update_rgblight_default();
-          rgblight_enable();
-          RGB_current_mode = rgblight_config.mode;
-        }
-      #endif
-      break;
-      case NG_NN:
+    case NG_I:
       if(record->event.pressed) {
         layer_on(_N_GETA_MIDDLE);
         return false;
@@ -658,131 +666,197 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         }
       }
       break;
-      case NG_NO:
+    case NG_KA:
+      if(record->event.pressed) {
+        layer_on(_N_GETA_MIDDLE);
+        return false;
+      } else{
+        layer_off(_N_GETA_MIDDLE);
+        if(IS_INPUT){
+          return false;
+        }
+      }
+      break;
+    case NG_SI:
       if(record->event.pressed) {
         layer_on(_N_GETA_RING);
         return false;
       } else{
         layer_off(_N_GETA_RING);
+        if(IS_INPUT){
+          return false;
+        }
+      }
+      break;
+    case NG_TO:
+      if(record->event.pressed) {
+        layer_on(_N_GETA_RING);
+        return false;
+      } else{
+        layer_off(_N_GETA_RING);
+        if(IS_INPUT){
+          return false;
+        }
+      }
+      break;
+    case NG_KO:
+      if(record->event.pressed) {
+        layer_on(_N_GETA_MIDDLE_TOP);
+        return false;
+      } else{
+        layer_off(_N_GETA_MIDDLE_TOP);
+        if(IS_INPUT){
+          return false;
+        }
+      }
+      break;
+    case NG_HA:
+      if(record->event.pressed) {
+        layer_on(_N_GETA_MIDDLE_TOP);
+        return false;
+      } else{
+        layer_off(_N_GETA_MIDDLE_TOP);
+        if(IS_INPUT){
+          return false;
+        }
+      }
+      break;
+    case NG_GA:
+      if(record->event.pressed) {
+        layer_on(_N_GETA_RING_TOP);
+        return false;
+      } else{
+        layer_off(_N_GETA_RING_TOP);
+        if(IS_INPUT){
+          return false;
+        }
+      }
+      break;
+    case NG_NI:
+      if(record->event.pressed) {
+        layer_on(_N_GETA_RING_TOP);
+        return false;
+      } else{
+        layer_off(_N_GETA_RING_TOP);
+        if(IS_INPUT){
+          return false;
+        }
+      }
+      break;
+    case NG_NO:
+      if(record->event.pressed) {
+        layer_on(_N_GETA_LITTLE_L);
+        return false;
+      } else{
+        layer_off(_N_GETA_LITTLE_L);
+        if(IS_INPUT){
+          return false;
+        }
+      }
+      break;
+    case NG_NA:
+      if(record->event.pressed) {
+        layer_on(_N_GETA_LITTLE_R);
+        return false;
+      } else{
+        layer_off(_N_GETA_LITTLE_R);
         if(IS_INPUT){
           return false;
         }
       }
       break;
 
-      case THUMB_LL:
+    case THUMB_LL:
       if(record->event.pressed) {
-        layer_on(_N_GETA_RING);
-        return false;
-      } else{
-        layer_off(_N_GETA_RING);
-        if(IS_INPUT){
+        pressed_custom_layer(_THUMB_LL);
+        if(process_record_custom_layer(keycode, record,IS_INPUT)){
+          return false;
+        }
+      }else {
+        process_record_custom_layer(keycode, record,IS_INPUT);
+        release_custom_layer(_THUMB_LL);
+        if(process_record_custom_layer(keycode, record,true)){
           return false;
         }
       }
       break;
-      case THUMB_LC:
+    case THUMB_LC:
       if(record->event.pressed) {
-        layer_on(_N_GETA_RING);
-        return false;
-      } else{
-        layer_off(_N_GETA_RING);
-        if(IS_INPUT){
+        pressed_custom_layer(_THUMB_LC);
+        if(process_record_custom_layer(keycode, record,IS_INPUT)){
+          return false;
+        }
+      }else {
+        process_record_custom_layer(keycode, record,IS_INPUT);
+        release_custom_layer(_THUMB_LC);
+        if(process_record_custom_layer(keycode, record,true)){
           return false;
         }
       }
       break;
-      case THUMB_LR:
+    case THUMB_LR:
       if(record->event.pressed) {
-        layer_on(_N_GETA_RING);
-        return false;
-      } else{
-        layer_off(_N_GETA_RING);
-        if(IS_INPUT){
+        pressed_custom_layer(_THUMB_LR);
+        if(process_record_custom_layer(keycode, record,IS_INPUT)){
+          return false;
+        }
+      }else {
+        process_record_custom_layer(keycode, record,IS_INPUT);
+        release_custom_layer(_THUMB_LR);
+        if(process_record_custom_layer(keycode, record,true)){
           return false;
         }
       }
       break;
-      case THUMB_RL:
+    case THUMB_RL:
       if(record->event.pressed) {
-        layer_on(_N_GETA_RING);
-        return false;
-      } else{
-        layer_off(_N_GETA_RING);
-        if(IS_INPUT){
+        pressed_custom_layer(_THUMB_RL);
+        if(process_record_custom_layer(keycode, record,IS_INPUT)){
+          return false;
+        }
+      }else {
+        process_record_custom_layer(keycode, record,IS_INPUT);
+        release_custom_layer(_THUMB_RL);
+        if(process_record_custom_layer(keycode, record,true)){
           return false;
         }
       }
       break;
-      case THUMB_RC:
+    case THUMB_RC:
       if(record->event.pressed) {
-        layer_on(_N_GETA_RING);
-        return false;
-      } else{
-        layer_off(_N_GETA_RING);
-        if(IS_INPUT){
+        pressed_custom_layer(_THUMB_RC);
+        if(process_record_custom_layer(keycode, record,IS_INPUT)){
+          return false;
+        }
+      }else {
+        process_record_custom_layer(keycode, record,IS_INPUT);
+        release_custom_layer(_THUMB_RC);
+        if(process_record_custom_layer(keycode, record,true)){
           return false;
         }
       }
       break;
-      case THUMB_RR:
+    case THUMB_RR:
       if(record->event.pressed) {
-        layer_on(_N_GETA_RING);
-        return false;
-      } else{
-        layer_off(_N_GETA_RING);
-        if(IS_INPUT){
+        pressed_custom_layer(_THUMB_RR);
+        if(process_record_custom_layer(keycode, record,IS_INPUT)){
+          return false;
+        }
+      }else {
+        process_record_custom_layer(keycode, record,IS_INPUT);
+        release_custom_layer(_THUMB_RR);
+        if(process_record_custom_layer(keycode, record,true)){
           return false;
         }
       }
       break;
-      // case NG_GA:
-      // if(record->event.pressed) {
-      //   // send_string_P(str[0]);
-      //   send_string(N_GETA_1[0]);
-      // }
-      // return false;
-      // case NG_A:
-      // if(record->event.pressed) {
-      //   // send_string_P(str[1]);
-      //   //send_string(N_GETA_2[2]);
-      //   SEND_STRING("a");
-      //   b = NG_A;
-      // }
-      // return false;
-      // case NG_O:
-      // if(record->event.pressed) {
-      //   if (b >= NG_A && NG_NN >= b) {
-      //     if(NG_KA <= b) {
-      //       set_new_geta_string(&N_GETA_2[(uint8_t)(b - NG_KA)][0]);
-      //       //sprintf(macro_buf,"%d",((uint8_t)(b - NG_KA)));
-      //     }else if (NG_KYA <= b) {
-      //       set_new_geta_string(&N_GETA_3[(uint8_t)(b - NG_KYA)][0]);
-      //       //sprintf(macro_buf,"%d",((uint8_t)(b - NG_KYA)));
-      //     }else {
-      //       set_new_geta_string(&N_GETA_1[(uint8_t)( b - NG_A) ][0]);
-      //       //sprintf(macro_buf,"%d",((uint8_t)(b - NG_A)));
-      //     }
-      //   }
-
-      //   sprintf(macro_buf,"%d", is_input_time(keycode));
-      //   //send_string(macro_buf);
-      //   tap_code(KC_A);
-      //   b++;
-      //   // send_string_P(str[1]);
-      //   // char a[10];
-      //   // strcpy_P(a,N_GETA_3[7]);
-      //   // send_string(a);
-      //   // send_string(&N_GETA_1[0]);
-      // }
       return false;
   }
 
-     if(is_new_gata && !process_record_new_gata(keycode, record)){
-       //IS_INPUT = true;
-       return false;
-    }
-
+  if(is_new_gata && !process_record_new_gata(keycode, record)){
+    //IS_INPUT = true;
+    return false;
+  }
 
   return true;
 }
