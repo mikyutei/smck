@@ -128,13 +128,3 @@
   #define ICH_MEISU KC_LANG2 // Eisū (英数) on macOS
   #define ICH_MKANA KC_LANG1 // Kana (かな) on macOS
 #endif
-
-#ifdef WINDOWS
-  #define ICH_MOD_L KC_LGUI
-  #define ICH_MOD_R KC_RGUI
-#endif
-
-#ifdef I3WM
-#define ICH_MOD_L KC_LGUI
-#define ICH_MOD_R KC_RGUI
-#endif
