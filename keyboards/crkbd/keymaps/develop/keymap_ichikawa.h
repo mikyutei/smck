@@ -63,8 +63,37 @@
 
   #define ICH_MEISU KC_LANG2 // Eisū (英数) on macOS
   #define ICH_MKANA KC_LANG1 // Kana (かな) on macOS
+
+  //shifted source
+    // Row 1
+  #define SOURCE_ICH_EXLM KC_1    // !
+  #define SOURCE_ICH_DQUO KC_2    // "
+  #define SOURCE_ICH_HASH KC_3    // #
+  #define SOURCE_ICH_DLR  KC_4    // $
+  #define SOURCE_ICH_PERC KC_5    // %
+  #define SOURCE_ICH_AMPR KC_6    // &
+  #define SOURCE_ICH_QUOT KC_7    // '
+  #define SOURCE_ICH_LPRN KC_8    // (
+  #define SOURCE_ICH_RPRN KC_9    // )
+  #define SOURCE_ICH_EQL  KC_MINS // =
+  #define SOURCE_ICH_TILD KC_CIRC // ~
+  #define SOURCE_ICH_PIPE KC_YEN  // |
+  // Row 2
+  #define SOURCE_ICH_GRV  KC_AT   // `
+  #define SOURCE_ICH_LCBR KC_LBRC // {
+  // Row 3
+  #define SOURCE_ICH_CAPS KC_EISU // Caps Lock
+  #define SOURCE_ICH_PLUS KC_SCLN // +
+  #define SOURCE_ICH_ASTR KC_COLN // *
+  #define SOURCE_ICH_RCBR KC_RBRC // }
+  // Row 4
+  #define SOURCE_ICH_LABK KC_COMM // <
+  #define SOURCE_ICH_RABK KC_DOT  // >
+  #define SOURCE_ICH_QUES KC_SLSH // ?
+  #define SOURCE_ICH_UNDS KC_BSLS // _
 #endif
 
+//そのうち作る
 #ifdef LANG_US
   // Row 1
   #define ICH_ZKHK RALT(KC_GRV)  // Zenkaku ↔︎ Hankaku ↔ Kanji (半角 ↔ 全角 ↔ 漢字)

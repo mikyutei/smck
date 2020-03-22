@@ -13,28 +13,36 @@ extern uint8_t is_master;
 #include "keymap_ichikawa.h"
 #include "keymap_os.h"
 
+bool _qwerty = false;
+bool _shift = false;
+bool _ctrl = false;
+bool _alt = false;
+bool _gui = false;
+
+bool _mtgap_shift = false;
+
 // Each layer gets a name for readability, which is then used in the keymap matrix below.
 // The underscores don't mean anything - you can have a layer called STUFF or any other name.
 // Layer names don't all need to be of the same length, obviously, and you can also skip them
 // entirely and just use numbers.
 #define _MTGAP 0
-#define _MTGAP_SHIFT 1
-#define _N_GETA 2
-#define _N_GETA_MIDDLE 3 //いか
-#define _N_GETA_RING 4 //しと
-#define _N_GETA_MIDDLE_TOP 5 //こは
-#define _N_GETA_RING_TOP 6 //がに
-#define _N_GETA_LITTLE_L 7 //の
-#define _N_GETA_LITTLE_R 8 //な
-#define _NO_KEY_LAYOUT_0 9
-#define _NO_KEY_LAYOUT_1 10
-#define _NO_KEY_LAYOUT_2 11
-#define _NO_KEY_LAYOUT_3 12
-#define _NO_KEY_LAYOUT_4 13
-#define _NO_KEY_LAYOUT_5 14
-#define _NO_KEY_LAYOUT_6 15
-#define _NO_KEY_LAYOUT_7 16
-#define _NO_KEY_LAYOUT_8 17
+#define _MTGAP_SHIFT 8
+#define _N_GETA 1
+#define _N_GETA_MIDDLE 2 //いか
+#define _N_GETA_RING 3 //しと
+#define _N_GETA_MIDDLE_TOP 4 //こは
+#define _N_GETA_RING_TOP 5 //がに
+#define _N_GETA_LITTLE_L 6 //の
+#define _N_GETA_LITTLE_R 7 //な
+#define _QWERTY 9
+#define _NUM_LAYER 10
+#define _SYMBOL_LAYER 11
+#define _ICHIKAWA_LCRC 12
+#define _ICHIKAWA_LLRC 13
+#define _ICHIKAWA_RCLC 14
+#define _ICHIKAWA_RCLL 15
+#define _ICHIKAWA_LLLC 16 //隣り合ったkey 使用予定はなし
+#define _ICHIKAWA_LCLL 17 //隣り合ったkey 使用予定はなし
 #define _NO_KEY_LAYOUT_9 18
 #define _NO_KEY_LAYOUT_A 19
 #define _NO_KEY_LAYOUT_B 20
@@ -43,11 +51,8 @@ extern uint8_t is_master;
 #define _NO_KEY_LAYOUT_E 23
 #define _NO_KEY_LAYOUT_F 24
 #define _NO_KEY_LAYOUT_G 25
-#define _NO_KEY_LAYOUT_H 26
-#define _NO_KEY_LAYOUT_I 27
-#define _QWERTY 28
-#define _NUM_LAYER 29
-#define _SYMBOL_LAYER 30
+#define _NO_KEY_LAYOUT_I 26
+#define _MOUSE 30 //(_ICHIKAWA_LL)
 
 //macro setting
 char macro_buf[30];
@@ -60,6 +65,17 @@ enum custom_keycodes {
   THUMB_RL,
   THUMB_RC,
   THUMB_RR,
+  ICH_LCTRL,
+  ICH_RCTRL,
+  ICH_LALT,
+  ICH_RALT,
+  ICH_LGUI,
+  ICH_RGUI,
+#ifdef WINDOWS
+  WINDOW_OP_1, //maximize
+  WINDOW_OP_2, //minimize
+  WINDOW_OP_3, //nomalize
+#endif
   NG_FIRST
 };
 
@@ -400,74 +416,308 @@ bool is_tapped(void) {
   return false;
 }
 
-bool process_record_custom_layer(uint16_t keycode, keyrecord_t *record, bool is_inputted){
+#define SHIFT_ON register_code(KC_LSHIFT);\
+                _shift = true;
+#define SHIFT_OFF unregister_code(KC_LSHIFT);\
+                  _shift = false;
+#define QWERTY_ON layer_on(_QWERTY);\
+                  _qwerty = true;
+#define QWERTY_OFF layer_off(_QWERTY);\
+                  _qwerty = false;
+
+bool is_custom_layer_button_on(uint16_t exclude){
+  for (int i = 0; i< _LAYER_NUM;i++){
+    if (i == exclude) {
+      continue;
+    }
+    if (inputed_layer[i] > 0) {
+      return true;
+    }
+  }
+  return false;
+}
+
+//return true -> 後続処理する
+//return false -> 後続処理しない
+bool process_record_custom_layer(bool pressed, bool is_inputted){
+
+  if(inputed_layer[_THUMB_LL] == 1) {
+    if(inputed_layer[_THUMB_LC] == 2) {
+        if(pressed) {
+          layer_on(_ICHIKAWA_LLLC);
+        }else {
+          layer_off(_ICHIKAWA_LLLC);
+        }
+    }
+    else if(inputed_layer[_THUMB_RC] == 2) {
+        if(pressed) {
+          layer_on(_ICHIKAWA_LLRC);
+        }else {
+          layer_off(_ICHIKAWA_LLRC);
+        }
+    }
+    if(pressed) {
+      layer_on(_MOUSE);
+    }else {
+      layer_off(_MOUSE);
+    }
+  }
+
+  if(inputed_layer[_THUMB_LC] == 1) {
+    if(inputed_layer[_THUMB_LL] == 2) {
+        if(pressed) {
+          layer_on(_ICHIKAWA_LCLL);
+        }else {
+          layer_off(_ICHIKAWA_LCLL);
+        }
+    }
+    else if(inputed_layer[_THUMB_RC] == 2) {
+        if(pressed) {
+          layer_on(_ICHIKAWA_LCRC);
+        }else {
+          layer_off(_ICHIKAWA_LCRC);
+        }
+    }
+    if(pressed) {
+      layer_on(_SYMBOL_LAYER);
+    }else {
+      layer_off(_SYMBOL_LAYER);
+    }
+  }
+
+  if(inputed_layer[_THUMB_LR] == 1) {
+    if(pressed) {
+      QWERTY_ON
+      register_code(KC_LCTRL);
+      _ctrl = true;
+    }else {
+      QWERTY_OFF
+      _ctrl = false;
+      unregister_code(KC_LCTRL);
+    }
+  }
+
+  if(inputed_layer[_THUMB_RL] == 1) {
+    if(pressed) {
+      layer_on(_MTGAP_SHIFT);
+      _mtgap_shift = true;
+    } else {
+      layer_off(_MTGAP_SHIFT);
+      _mtgap_shift = false;
+    }
+    if(is_custom_layer_button_on(_THUMB_RL)){
+      if(pressed) {
+        SHIFT_ON
+      } else {
+        SHIFT_OFF
+      }
+    }
+  }
+  else if(inputed_layer[_THUMB_RL] > 1) {
+    if(pressed) {
+      _mtgap_shift = true;
+      SHIFT_ON
+    } else {
+      _mtgap_shift = false;
+      SHIFT_OFF
+    }
+  }
+
+  if(inputed_layer[_THUMB_RC] == 1) {
+    if(inputed_layer[_THUMB_LL] == 2) {
+        if(pressed) {
+          layer_on(_ICHIKAWA_RCLL);
+        }else {
+          layer_off(_ICHIKAWA_RCLL);
+        }
+    }
+    else if(inputed_layer[_THUMB_LC] == 2) {
+        if(pressed) {
+          layer_on(_ICHIKAWA_RCLC);
+        }else {
+          layer_off(_ICHIKAWA_RCLC);
+        }
+    }
+    if(pressed) {
+      layer_on(_NUM_LAYER);
+    }
+    else {
+      layer_off(_NUM_LAYER);
+    }
+  }
+
+  if(inputed_layer[_THUMB_RR] == 1) {
+    if(pressed) {
+      set_tapping_timer();
+      QWERTY_ON
+      register_code(ICH_MOD_L_KEY);
+      _gui = true;
+    }else {
+      QWERTY_OFF
+      _gui = false;
+      //
+      if(!_ctrl){
+        register_code(KC_LCTRL);
+        unregister_code(KC_LCTRL);
+        unregister_code(ICH_MOD_L_KEY);
+      }
+      else if(!_shift){
+        register_code(KC_LSHIFT);
+        unregister_code(KC_LSHIFT);
+        unregister_code(ICH_MOD_L_KEY);
+      }
+      else if(!_alt){
+        register_code(KC_LALT);
+        unregister_code(KC_LALT);
+        unregister_code(ICH_MOD_L_KEY);
+      }
+      else {
+        unregister_code(ICH_MOD_L_KEY);
+      }
+    }
+  }
+
+// 以下は一回押す系の処理
+// 3キー以上押すことは定義してないので3以上でreturn
   if (pressed_num >= 3) return false;
 
   if(inputed_layer[_THUMB_LL] == 1) {
     if(inputed_layer[_THUMB_LC] == 2) {
-        if(record->event.pressed) {
+        if(pressed) {
           set_tapping_timer();
-          return true;
+          return false;
         }else {
           if(!is_inputted && is_tapped()) {
-            register_code(KC_9);
-            unregister_code(KC_9);
+            register_code16(TASK_MANAGER);
+            unregister_code16(TASK_MANAGER);
           }
-          return true;
+          return false;
+        }
+    }
+    else if(inputed_layer[_THUMB_LR] == 2) {
+        if(pressed) {
+          set_tapping_timer();
+          return false;
+        }else {
+          if(!is_inputted && is_tapped()) {
+            register_code16(LOGOUT);
+            unregister_code16(LOGOUT);
+          }
+          return false;
+        }
+    }
+    else if(inputed_layer[_THUMB_RL] == 2) {
+        if(pressed) {
+          set_tapping_timer();
+          return false;
+        }else {
+          if(!is_inputted && is_tapped()) {
+            register_code16(LSFT(KC_ENTER));
+            unregister_code16(LSFT(KC_ENTER));
+          }
+          return false;
         }
     }
     else if(inputed_layer[_THUMB_RC] == 2) {
-        if(record->event.pressed) {
+        if(pressed) {
           set_tapping_timer();
-          return true;
+          return false;
         }else {
           if(!is_inputted && is_tapped()) {
-            register_code(KC_4);
-            unregister_code(KC_4);
+            register_code16(WINDOW_OP_2);
+            unregister_code16(WINDOW_OP_2);
           }
-          return true;
+          return false;
         }
     }
-    if(record->event.pressed) {
+    else if(inputed_layer[_THUMB_RR] == 2) {
+        if(pressed) {
+          set_tapping_timer();
+          return false;
+        }else {
+          if(!is_inputted && is_tapped()) {
+            register_code16(LSFT(LCTL(KC_ENTER)));
+            unregister_code16(LSFT(LCTL(KC_ENTER)));
+          }
+          return false;
+        }
+    }
+    if(pressed) {
       set_tapping_timer();
-      return true;
+      return false;
     }else {
       if(!is_inputted && is_tapped()) {
-        register_code(KC_1);
-        unregister_code(KC_1);
+        register_code(KC_BSPACE);
+        unregister_code(KC_BSPACE);
       }
-      return true;
+      return false;
     }
   }
 
-  else if(inputed_layer[_THUMB_LC] == 1) {
+  if(inputed_layer[_THUMB_LC] == 1) {
     if(inputed_layer[_THUMB_LL] == 2) {
-        if(record->event.pressed) {
+        if(pressed) {
           set_tapping_timer();
-          return true;
+          return false;
         }else {
           if(!is_inputted && is_tapped()) {
-            register_code(KC_5);
-            unregister_code(KC_5);
+            register_code(KC_PSCREEN);
+            unregister_code(KC_PSCREEN);
           }
-          return true;
+          return false;
         }
     }
-    else if(inputed_layer[_THUMB_RC] == 2) {
-        if(record->event.pressed) {
+    else if(inputed_layer[_THUMB_LR] == 2) {
+        if(pressed) {
           set_tapping_timer();
-          return true;
+          return false;
         }else {
           if(!is_inputted && is_tapped()) {
-            register_code(KC_6);
-            unregister_code(KC_6);
+            register_code(KC_APPLICATION);
+            unregister_code(KC_APPLICATION);
           }
-          return true;
+          return false;
         }
     }
-    if(record->event.pressed) {
+    if(inputed_layer[_THUMB_RL] == 2) {
+        if(pressed) {
+          set_tapping_timer();
+          return false;
+        }else {
+          if(!is_inputted && is_tapped()) {
+            register_code16(CLIPBOARD);
+            unregister_code16(CLIPBOARD);
+          }
+          return false;
+        }
+    }
+    if(inputed_layer[_THUMB_RC] == 2) {
+        if(pressed) {
+          set_tapping_timer();
+          return false;
+        }else {
+          if(!is_inputted && is_tapped()) {
+            register_code(KC_TAB);
+            unregister_code(KC_TAB);
+          }
+          return false;
+        }
+    }
+    if(inputed_layer[_THUMB_RR] == 2) {
+        if(pressed) {
+          set_tapping_timer();
+          return false;
+        }else {
+          if(!is_inputted && is_tapped()) {
+            register_code16(KILL_WINDOW);
+            unregister_code16(KILL_WINDOW);
+          }
+          return false;
+        }
+    }
+    if(pressed) {
       set_tapping_timer();
-      return true;
+      return false;
     }else {
       if(!is_inputted && is_tapped()) {
         register_code(KC_MHEN);
@@ -475,38 +725,100 @@ bool process_record_custom_layer(uint16_t keycode, keyrecord_t *record, bool is_
         is_new_gata = false;
         layer_off(_N_GETA);
       }
-      return true;
+      return false;
     }
   }
 
-  else if(inputed_layer[_THUMB_RC] == 1) {
+  if(inputed_layer[_THUMB_LR] == 1) {
+    if(pressed) {
+      set_tapping_timer();
+      return false;
+    }else {
+      if(!is_inputted && is_tapped()) {
+        register_code(KC_ENTER);
+        unregister_code(KC_ENTER);
+      }
+      return false;
+    }
+  }
+
+  if(inputed_layer[_THUMB_RL] == 1) {
+    if(pressed) {
+      set_tapping_timer();
+      return false;
+    }else {
+      if(!is_inputted && is_tapped()) {
+        register_code(KC_SPACE);
+        unregister_code(KC_SPACE);
+      }
+      return false;
+    }
+  }
+
+  if(inputed_layer[_THUMB_RC] == 1) {
     if(inputed_layer[_THUMB_LL] == 2) {
-        if(record->event.pressed) {
+        if(pressed) {
           set_tapping_timer();
-          return true;
+          return false;
         }else {
           if(!is_inputted && is_tapped()) {
-            register_code(KC_7);
-            unregister_code(KC_7);
+            register_code16(WINDOW_OP_1);
+            unregister_code16(WINDOW_OP_1);
           }
-          return true;
+          return false;
         }
     }
     else if(inputed_layer[_THUMB_LC] == 2) {
-        if(record->event.pressed) {
+        if(pressed) {
           set_tapping_timer();
-          return true;
+          return false;
         }else {
           if(!is_inputted && is_tapped()) {
-            register_code(KC_8);
-            unregister_code(KC_8);
+            register_code16(LSFT(KC_TAB));
+            unregister_code16(LSFT(KC_TAB));
           }
-          return true;
+          return false;
         }
     }
-    if(record->event.pressed) {
+    else if(inputed_layer[_THUMB_LR] == 2) {
+        if(pressed) {
+          set_tapping_timer();
+          return false;
+        }else {
+          if(!is_inputted && is_tapped()) {
+            register_code16(WINDOW_OP_3);
+            unregister_code16(WINDOW_OP_3);
+          }
+          return false;
+        }
+    }
+    else if(inputed_layer[_THUMB_RL] == 2) {
+        if(pressed) {
+          set_tapping_timer();
+          return false;
+        }else {
+          if(!is_inputted && is_tapped()) {
+            register_code16(WINDOW_OP_4);
+            unregister_code16(WINDOW_OP_4);
+          }
+          return false;
+        }
+    }
+    else if(inputed_layer[_THUMB_RR] == 2) {
+        if(pressed) {
+          set_tapping_timer();
+          return false;
+        }else {
+          if(!is_inputted && is_tapped()) {
+            register_code(KC_PAUSE);
+            unregister_code(KC_PAUSE);
+          }
+          return false;
+        }
+    }
+    if(pressed) {
       set_tapping_timer();
-      return true;
+      return false;
     }else {
       if(!is_inputted && is_tapped()) {
         register_code(KC_HENK);
@@ -514,11 +826,30 @@ bool process_record_custom_layer(uint16_t keycode, keyrecord_t *record, bool is_
         is_new_gata = true;
         layer_on(_N_GETA);
       }
-      return true;
+      return false;
     }
   }
 
-  return false;
+  if(inputed_layer[_THUMB_RR] == 1) {
+    if(pressed) {
+      set_tapping_timer();
+      return false;
+    }else {
+      if(!is_inputted && is_tapped()) {
+        if(_alt){
+          unregister_code(KC_LALT);
+          _alt = false;
+        }
+        else {
+          register_code(KC_LALT);
+          _alt = true;
+        }
+      }
+      return false;
+    }
+  }
+
+  return true;
 }
 
 // char itoa(uint16_t value) {
@@ -526,9 +857,6 @@ bool process_record_custom_layer(uint16_t keycode, keyrecord_t *record, bool is_
 //   itoa(value,a,10);
 //   return a;
 // }
-
-
-
 
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   [_NO_KEY_LAYOUT_I] = LAYOUT( \
@@ -544,13 +872,25 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   ),
   [_MTGAP] = LAYOUT( \
   //,-----------------------------------------.                ,-----------------------------------------.
-      TO(_N_GETA),    NG_GA,    KC_W,     KC_MS_ACCEL0,     KC_R,     KC_T, KC_Y,     KC_MS_BTN1,     KC_MS_UP,     KC_MS_BTN2,     KC_MS_WH_UP,  KC_BSPC,\
+    KC_ENTER,KC_NO,KC_NO, KC_NO, KC_NO, KC_NO,                  KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_BSPACE,\
   //|------+------+------+------+------+------|                |------+------+------+------+------+------|
-      TO(0),NG_A,    THUMB_LL,     THUMB_LC,     THUMB_RC,     KC_G, KC_H,     KC_MS_LEFT,     KC_MS_DOWN,     KC_MS_RIGHT,  KC_MS_WH_DOWN,  KC_QUOT,\
+    ICH_RALT,KC_NO,KC_NO, KC_NO, KC_NO, KC_NO,                  KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_RSHIFT,\
   //|------+------+------+------+------+------|                |------+------+------+------+------+------|
-      KC_LSFT, NG_O,      KC_X,     KC_MS_ACCEL2,     KC_V,     KC_B, KC_N,     KC_M,  KC_COMM,   KC_DOT ,  KC_SLSH,  KC_RSFT,\
+    ICH_RGUI,KC_NO,KC_NO, KC_NO, KC_NO, KC_NO,                  KC_NO, KC_NO, KC_NO, KC_NO ,KC_NO, ICH_RCTRL,\
   //|------+------+------+------+------+------+------|  |------+------+------+------+------+------+------|
-                                  THUMB_RC, THUMB_LC,   KC_ENT,      KC_SPC, THUMB_RC, KC_NO \
+                                THUMB_LL,THUMB_LC,THUMB_LR,THUMB_RL,THUMB_RC,THUMB_RR \
+                              //`--------------------'  `--------------------'
+  ),
+
+  [_MTGAP_SHIFT] = LAYOUT( \
+  //,-----------------------------------------.                ,-----------------------------------------.
+    KC_TRNS, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO,                KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_TRNS,\
+  //|------+------+------+------+------+------|                |------+------+------+------+------+------|
+    KC_TRNS, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO,                 KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_TRNS,\
+  //|------+------+------+------+------+------|                |------+------+------+------+------+------|
+    KC_TRNS, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO,                  KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_TRNS,\
+  //|------+------+------+------+------+------+------|  |------+------+------+------+------+------+------|
+                               KC_TRNS,KC_TRNS,KC_TRNS, KC_TRNS,KC_TRNS,KC_TRNS \
                               //`--------------------'  `--------------------'
   ),
 
@@ -638,6 +978,114 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     KC_TRNS,  KC_A,  KC_S,  KC_D,  KC_F,  KC_G,                   KC_H,  KC_J,  KC_K,  KC_L,KC_SCLN,KC_TRNS,\
   //|------+------+------+------+------+------|                |------+------+------+------+------+------|
     KC_TRNS,  KC_Z,  KC_X,  KC_C,  KC_V,  KC_B,                   KC_N,  KC_M,KC_COMM,KC_DOT,KC_SLSH,KC_TRNS,\
+  //|------+------+------+------+------+------+------|  |------+------+------+------+------+------+------|
+                               KC_TRNS,KC_TRNS,KC_TRNS, KC_TRNS,KC_TRNS,KC_TRNS \
+                              //`--------------------'  `--------------------'
+  ),
+
+  [_NUM_LAYER] = LAYOUT( \
+  //,-----------------------------------------.                ,-----------------------------------------.
+    KC_TRNS, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO,                KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_TRNS,\
+  //|------+------+------+------+------+------|                |------+------+------+------+------+------|
+    KC_TRNS, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO,                 KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_TRNS,\
+  //|------+------+------+------+------+------|                |------+------+------+------+------+------|
+    KC_TRNS, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO,                  KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_TRNS,\
+  //|------+------+------+------+------+------+------|  |------+------+------+------+------+------+------|
+                               KC_TRNS,KC_TRNS,KC_TRNS, KC_TRNS,KC_TRNS,KC_TRNS \
+                              //`--------------------'  `--------------------'
+  ),
+
+  [_SYMBOL_LAYER] = LAYOUT( \
+  //,-----------------------------------------.                ,-----------------------------------------.
+    KC_TRNS, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO,                KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_TRNS,\
+  //|------+------+------+------+------+------|                |------+------+------+------+------+------|
+    KC_TRNS, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO,                 KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_TRNS,\
+  //|------+------+------+------+------+------|                |------+------+------+------+------+------|
+    KC_TRNS, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO,                  KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_TRNS,\
+  //|------+------+------+------+------+------+------|  |------+------+------+------+------+------+------|
+                               KC_TRNS,KC_TRNS,KC_TRNS, KC_TRNS,KC_TRNS,KC_TRNS \
+                              //`--------------------'  `--------------------'
+  ),
+
+  [_ICHIKAWA_LCRC] = LAYOUT( \
+  //,-----------------------------------------.                ,-----------------------------------------.
+    KC_TRNS, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO,                KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_TRNS,\
+  //|------+------+------+------+------+------|                |------+------+------+------+------+------|
+    KC_TRNS, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO,                 KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_TRNS,\
+  //|------+------+------+------+------+------|                |------+------+------+------+------+------|
+    KC_TRNS, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO,                  KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_TRNS,\
+  //|------+------+------+------+------+------+------|  |------+------+------+------+------+------+------|
+                               KC_TRNS,KC_TRNS,KC_TRNS, KC_TRNS,KC_TRNS,KC_TRNS \
+                              //`--------------------'  `--------------------'
+  ),
+
+  [_ICHIKAWA_LLRC] = LAYOUT( \
+  //,-----------------------------------------.                ,-----------------------------------------.
+    KC_TRNS, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO,                KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_TRNS,\
+  //|------+------+------+------+------+------|                |------+------+------+------+------+------|
+    KC_TRNS, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO,                 KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_TRNS,\
+  //|------+------+------+------+------+------|                |------+------+------+------+------+------|
+    KC_TRNS, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO,                  KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_TRNS,\
+  //|------+------+------+------+------+------+------|  |------+------+------+------+------+------+------|
+                               KC_TRNS,KC_TRNS,KC_TRNS, KC_TRNS,KC_TRNS,KC_TRNS \
+                              //`--------------------'  `--------------------'
+  ),
+
+  [_ICHIKAWA_RCLC] = LAYOUT( \
+  //,-----------------------------------------.                ,-----------------------------------------.
+    KC_TRNS, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO,                KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_TRNS,\
+  //|------+------+------+------+------+------|                |------+------+------+------+------+------|
+    KC_TRNS, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO,                 KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_TRNS,\
+  //|------+------+------+------+------+------|                |------+------+------+------+------+------|
+    KC_TRNS, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO,                  KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_TRNS,\
+  //|------+------+------+------+------+------+------|  |------+------+------+------+------+------+------|
+                               KC_TRNS,KC_TRNS,KC_TRNS, KC_TRNS,KC_TRNS,KC_TRNS \
+                              //`--------------------'  `--------------------'
+  ),
+
+  [_ICHIKAWA_RCLL] = LAYOUT( \
+  //,-----------------------------------------.                ,-----------------------------------------.
+    KC_TRNS, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO,                KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_TRNS,\
+  //|------+------+------+------+------+------|                |------+------+------+------+------+------|
+    KC_TRNS, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO,                 KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_TRNS,\
+  //|------+------+------+------+------+------|                |------+------+------+------+------+------|
+    KC_TRNS, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO,                  KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_TRNS,\
+  //|------+------+------+------+------+------+------|  |------+------+------+------+------+------+------|
+                               KC_TRNS,KC_TRNS,KC_TRNS, KC_TRNS,KC_TRNS,KC_TRNS \
+                              //`--------------------'  `--------------------'
+  ),
+
+  [_ICHIKAWA_LLLC] = LAYOUT( \
+  //,-----------------------------------------.                ,-----------------------------------------.
+    KC_TRNS, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO,                KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_TRNS,\
+  //|------+------+------+------+------+------|                |------+------+------+------+------+------|
+    KC_TRNS, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO,                 KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_TRNS,\
+  //|------+------+------+------+------+------|                |------+------+------+------+------+------|
+    KC_TRNS, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO,                  KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_TRNS,\
+  //|------+------+------+------+------+------+------|  |------+------+------+------+------+------+------|
+                               KC_TRNS,KC_TRNS,KC_TRNS, KC_TRNS,KC_TRNS,KC_TRNS \
+                              //`--------------------'  `--------------------'
+  ),
+
+  [_ICHIKAWA_LCLL] = LAYOUT( \
+  //,-----------------------------------------.                ,-----------------------------------------.
+    KC_TRNS, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO,                KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_TRNS,\
+  //|------+------+------+------+------+------|                |------+------+------+------+------+------|
+    KC_TRNS, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO,                 KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_TRNS,\
+  //|------+------+------+------+------+------|                |------+------+------+------+------+------|
+    KC_TRNS, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO,                  KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_TRNS,\
+  //|------+------+------+------+------+------+------|  |------+------+------+------+------+------+------|
+                               KC_TRNS,KC_TRNS,KC_TRNS, KC_TRNS,KC_TRNS,KC_TRNS \
+                              //`--------------------'  `--------------------'
+  ),
+
+  [_MOUSE] = LAYOUT( \
+  //,-----------------------------------------.                ,-----------------------------------------.
+    KC_TRNS, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO,                KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_TRNS,\
+  //|------+------+------+------+------+------|                |------+------+------+------+------+------|
+    KC_TRNS, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO,                 KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_TRNS,\
+  //|------+------+------+------+------+------|                |------+------+------+------+------+------|
+    KC_TRNS, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO,                  KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_TRNS,\
   //|------+------+------+------+------+------+------|  |------+------+------+------+------+------+------|
                                KC_TRNS,KC_TRNS,KC_TRNS, KC_TRNS,KC_TRNS,KC_TRNS \
                               //`--------------------'  `--------------------'
@@ -770,13 +1218,13 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     case THUMB_LL:
       if(record->event.pressed) {
         pressed_custom_layer(_THUMB_LL);
-        if(process_record_custom_layer(keycode, record,IS_INPUT)){
+        if(!process_record_custom_layer(record->event.pressed,IS_INPUT)){
           return false;
         }
       }else {
-        process_record_custom_layer(keycode, record,IS_INPUT);
+        process_record_custom_layer(record->event.pressed,IS_INPUT);
         release_custom_layer(_THUMB_LL);
-        if(process_record_custom_layer(keycode, record,true)){
+        if(!process_record_custom_layer(true,true)){
           return false;
         }
       }
@@ -784,13 +1232,13 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     case THUMB_LC:
       if(record->event.pressed) {
         pressed_custom_layer(_THUMB_LC);
-        if(process_record_custom_layer(keycode, record,IS_INPUT)){
+        if(!process_record_custom_layer(record->event.pressed,IS_INPUT)){
           return false;
         }
       }else {
-        process_record_custom_layer(keycode, record,IS_INPUT);
+        process_record_custom_layer(record->event.pressed,IS_INPUT);
         release_custom_layer(_THUMB_LC);
-        if(process_record_custom_layer(keycode, record,true)){
+        if(!process_record_custom_layer(true,true)){
           return false;
         }
       }
@@ -798,13 +1246,13 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     case THUMB_LR:
       if(record->event.pressed) {
         pressed_custom_layer(_THUMB_LR);
-        if(process_record_custom_layer(keycode, record,IS_INPUT)){
+        if(!process_record_custom_layer(record->event.pressed,IS_INPUT)){
           return false;
         }
       }else {
-        process_record_custom_layer(keycode, record,IS_INPUT);
+        process_record_custom_layer(record->event.pressed,IS_INPUT);
         release_custom_layer(_THUMB_LR);
-        if(process_record_custom_layer(keycode, record,true)){
+        if(!process_record_custom_layer(true,true)){
           return false;
         }
       }
@@ -812,13 +1260,13 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     case THUMB_RL:
       if(record->event.pressed) {
         pressed_custom_layer(_THUMB_RL);
-        if(process_record_custom_layer(keycode, record,IS_INPUT)){
+        if(!process_record_custom_layer(record->event.pressed,IS_INPUT)){
           return false;
         }
       }else {
-        process_record_custom_layer(keycode, record,IS_INPUT);
+        process_record_custom_layer(record->event.pressed,IS_INPUT);
         release_custom_layer(_THUMB_RL);
-        if(process_record_custom_layer(keycode, record,true)){
+        if(!process_record_custom_layer(true,true)){
           return false;
         }
       }
@@ -826,13 +1274,13 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     case THUMB_RC:
       if(record->event.pressed) {
         pressed_custom_layer(_THUMB_RC);
-        if(process_record_custom_layer(keycode, record,IS_INPUT)){
+        if(!process_record_custom_layer(record->event.pressed,IS_INPUT)){
           return false;
         }
       }else {
-        process_record_custom_layer(keycode, record,IS_INPUT);
+        process_record_custom_layer(record->event.pressed,IS_INPUT);
         release_custom_layer(_THUMB_RC);
-        if(process_record_custom_layer(keycode, record,true)){
+        if(!process_record_custom_layer(true,true)){
           return false;
         }
       }
@@ -840,13 +1288,13 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     case THUMB_RR:
       if(record->event.pressed) {
         pressed_custom_layer(_THUMB_RR);
-        if(process_record_custom_layer(keycode, record,IS_INPUT)){
+        if(!process_record_custom_layer(record->event.pressed,IS_INPUT)){
           return false;
         }
       }else {
-        process_record_custom_layer(keycode, record,IS_INPUT);
+        process_record_custom_layer(record->event.pressed,IS_INPUT);
         release_custom_layer(_THUMB_RR);
-        if(process_record_custom_layer(keycode, record,true)){
+        if(!process_record_custom_layer(true,true)){
           return false;
         }
       }
