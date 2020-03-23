@@ -16,8 +16,8 @@ UNICODE_ENABLE = no         # Unicode
 BLUETOOTH_ENABLE = no       # Enable Bluetooth with the Adafruit EZ-Key HID
 RGBLIGHT_ENABLE = no       # Enable WS2812 RGB underlight.
 SWAP_HANDS_ENABLE = no      # Enable one-hand typing
-AUTO_SHIFT_MODIFIERS = yes
-COMBO_ENABLE = yes
+#AUTO_SHIFT_MODIFIERS = yes
+#COMBO_ENABLE = yes
 
 # Do not enable SLEEP_LED_ENABLE. it uses the same timer as BACKLIGHT_ENABLE
 SLEEP_LED_ENABLE = no    # Breathing sleep LED during USB suspend
@@ -31,3 +31,6 @@ SRC +=  ./lib/glcdfont.c \
         # ./lib/mode_icon_reader.c \
         # ./lib/host_led_state_reader.c \
         # ./lib/timelogger.c \
+
+# If you want to use newgeta layout, you need to add this
+SRC += ./keymaps/develop/newgeta.c \

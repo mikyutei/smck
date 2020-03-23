@@ -12,6 +12,7 @@ extern uint8_t is_master;
 
 #include "keymap_ichikawa.h"
 #include "keymap_os.h"
+#include "newgeta.h"
 
 bool _qwerty = false;
 bool _shift = false;
@@ -54,12 +55,8 @@ bool _mtgap_shift = false;
 #define _NO_KEY_LAYOUT_I 26
 #define _MOUSE 30 //(_ICHIKAWA_LL)
 
-//macro setting
-char macro_buf[30];
-
-
 enum custom_keycodes {
-  THUMB_LL = SAFE_RANGE,
+  THUMB_LL = NG_LATEST,
   THUMB_LC,
   THUMB_LR,
   THUMB_RL,
@@ -76,256 +73,9 @@ enum custom_keycodes {
   WINDOW_OP_2, //minimize
   WINDOW_OP_3, //nomalize
 #endif
-  NG_FIRST
 };
 
-
-enum new_geta {
-  NG_A = NG_FIRST,
-  NG_I,
-  NG_U,
-  NG_E,
-  NG_O,
-  NG_KYA,
-  NG_KYI,
-  NG_KYU,
-  NG_KYE,
-  NG_KYO,
-  NG_GYA,
-  NG_GYI,
-  NG_GYU,
-  NG_GYE,
-  NG_GYO,
-  NG_SYA,
-  NG_SYI,
-  NG_SYU,
-  NG_SYE,
-  NG_SYO,
-  NG_ZYA,
-  NG_ZYI,
-  NG_ZYU,
-  NG_ZYE,
-  NG_ZYO,
-  NG_TYA,
-  NG_TYI,
-  NG_TYU,
-  NG_TYE,
-  NG_TYO,
-  NG_DYA,
-  NG_DYI,
-  NG_DYU,
-  NG_DYE,
-  NG_DYO,
-  NG_THA,
-  NG_THI,
-  NG_THU,
-  NG_THE,
-  NG_THO,
-  NG_DHA,
-  NG_DHI,
-  NG_DHU,
-  NG_DHE,
-  NG_DHO,
-  NG_NYA,
-  NG_NYI,
-  NG_NYU,
-  NG_NYE,
-  NG_NYO,
-  NG_HYA,
-  NG_HYI,
-  NG_HYU,
-  NG_HYE,
-  NG_HYO,
-  NG_BYA,
-  NG_BYI,
-  NG_BYU,
-  NG_BYE,
-  NG_BYO,
-  NG_PYA,
-  NG_PYI,
-  NG_PYU,
-  NG_PYE,
-  NG_PYO,
-  NG_MYA,
-  NG_MYI,
-  NG_MYU,
-  NG_MYE,
-  NG_MYO,
-  NG_RYA,
-  NG_RYI,
-  NG_RYU,
-  NG_RYE,
-  NG_RYO,
-  NG_XYA,
-  NG_XYU,
-  NG_XYO,
-  NG_XTU,
-  NG_XWA,
-  NG_UXO,
-  NG_KA,
-  NG_KI,
-  NG_KU,
-  NG_KE,
-  NG_KO,
-  NG_SA,
-  NG_SI,
-  NG_SU,
-  NG_SE,
-  NG_SO,
-  NG_TA,
-  NG_TI,
-  NG_TU,
-  NG_TE,
-  NG_TO,
-  NG_NA,
-  NG_NI,
-  NG_NU,
-  NG_NE,
-  NG_NO,
-  NG_HA,
-  NG_HI,
-  NG_HU,
-  NG_HE,
-  NG_HO,
-  NG_MA,
-  NG_MI,
-  NG_MU,
-  NG_ME,
-  NG_MO,
-  NG_RA,
-  NG_RI,
-  NG_RU,
-  NG_RE,
-  NG_RO,
-  NG_GA,
-  NG_GI,
-  NG_GU,
-  NG_GE,
-  NG_GO,
-  NG_ZA,
-  NG_ZI,
-  NG_ZU,
-  NG_ZE,
-  NG_ZO,
-  NG_DA,
-  NG_DI,
-  NG_DU,
-  NG_DE,
-  NG_DO,
-  NG_BA,
-  NG_BI,
-  NG_BU,
-  NG_BE,
-  NG_BO,
-  NG_PA,
-  NG_PI,
-  NG_PU,
-  NG_PE,
-  NG_PO,
-  NG_XA,
-  NG_XI,
-  NG_XU,
-  NG_XE,
-  NG_XO,
-  NG_VA,
-  NG_VI,
-  NG_VU,
-  NG_VE,
-  NG_VO,
-  NG_QA,
-  NG_QI,
-  NG_QE,
-  NG_QO,
-  NG_YA,
-  NG_YU,
-  NG_YE,
-  NG_YO,
-  NG_WA,
-  NG_WI,
-  NG_WE,
-  NG_WO,
-  NG_FA,
-  NG_FI,
-  NG_FE,
-  NG_FO,
-  NG_JA,
-  NG_JU,
-  NG_JE,
-  NG_JO,
-  NG_NN,
-  NG_LATEST
-};
-
-//uint32_t AAAAA = millis();
-
-uint16_t b = NG_A;
-// const char N_GETA_V[5][1] PROGMEM = {
-//   "a","i","u","e","o"
-// };
-
-// const char N_GETA_C[19][1] PROGMEM = {
-//   "k","s","t","n","h",
-//   "m","y","r","w","g",
-//   "z","d","b","p","q",
-//   "x","f","v","j"
-// };
-
-// const char N_GETA_3[12][2] PROGMEM = {
-//   "ky","gy","sy","zy","ty",
-//   "ny","hy","by","py","my",
-//   "ry","xy"
-// };
-
-
-
-const char PROGMEM N_GETA_1[5][2] = {
-  "a","i","u","e","o"
-};
-
-const char PROGMEM N_GETA_2[91][3] = {
-"ka", "ki", "ku", "ke", "ko",
-"sa", "si", "su", "se", "so",
-"ta", "ti", "tu", "te", "to",
-"na", "ni", "nu", "ne", "no",
-"ha", "hi", "hu", "he", "ho",
-"ma", "mi", "mu", "me", "mo",
-"ra", "ri", "ru", "re", "ro",
-"ga", "gi", "gu", "ge", "go",
-"za", "zi", "zu", "ze", "zo",
-"da", "di", "du", "de", "do",
-"ba", "bi", "bu", "be", "bo",
-"pa", "pi", "pu", "pe", "po",
-"xa", "xi", "xu", "xe", "xo",
-"va", "vi", "vu", "ve", "vo",
-"qa", "qi", "qe", "qo",
-"ya", "yu", "ye", "yo",
-"wa", "wi", "we", "wo",
-"fa", "fi", "fe", "fo",
-"ja", "ju", "je", "jo",
-"nn"
-};
-
-const char PROGMEM N_GETA_3[76][4] = {
-"kya", "kyi", "kyu", "kye", "kyo",
-"gya", "gyi", "gyu", "gye", "gyo",
-"sya", "syi", "syu", "sye", "syo",
-"zya", "zyi", "zyu", "zye", "zyo",
-"tya", "tyi", "tyu", "tye", "tyo",
-"dya", "dyi", "dyu", "dye", "dyo",
-"tha", "thi", "thu", "the", "tho",
-"dha", "dhi", "dhu", "dhe", "dho",
-"nya", "nyi", "nyu", "nye", "nyo",
-"hya", "hyi", "hyu", "hye", "hyo",
-"bya", "byi", "byu", "bye", "byo",
-"pya", "pyi", "pyu", "pye", "pyo",
-"mya", "myi", "myu", "mye", "myo",
-"rya", "ryi", "ryu", "rye", "ryo",
-"xya", "xyu", "xyo", "xtu", "xwa",
-"uxo"
-};
-
-//japanese or english IME status on keyboard
-bool is_new_gata = false;
+// uint16_t b = NG_A;
 
 // 文字送信間隔のためのtimer
 uint16_t key_repeat_timer = 0;
@@ -333,43 +83,6 @@ uint16_t key_repeat_timer = 0;
 //同じ文字列か判定用
 uint16_t previous_keycode = 0;
 uint16_t current_keycode = 0;
-
-// macro_buf set only new geta layout char
-void set_new_geta_string(const char * src) {
-  strcpy_P(macro_buf,src);
-}
-
-// 入力可能時間か確認
-bool is_input_time(uint16_t keycode) {
-
-  if(keycode != previous_keycode) {
-    previous_keycode = keycode;
-    key_repeat_timer = timer_read();
-    return true;
-  } else if(KEY_REPEAT_DERAY < timer_elapsed(key_repeat_timer)) {
-    key_repeat_timer = timer_read();
-    return true;
-  }
-  return false;
-}
-
-bool process_record_new_gata(uint16_t keycode, keyrecord_t *record){
-
-  if (!record->event.pressed && keycode >= NG_A && NG_NN >= keycode) {
-    if(NG_KA <= keycode) {
-      set_new_geta_string(&N_GETA_2[(uint8_t)(keycode - NG_KA)][0]);
-    }else if (NG_KYA <= keycode) {
-      set_new_geta_string(&N_GETA_3[(uint8_t)(keycode - NG_KYA)][0]);
-    }else {
-      set_new_geta_string(&N_GETA_1[(uint8_t)( keycode - NG_A) ][0]);
-    }
-
-    send_string(macro_buf);
-
-    return false;
-  }
-  return true;
-}
 
 bool IS_INPUT = false;
 
@@ -722,7 +435,7 @@ bool process_record_custom_layer(bool pressed, bool is_inputted){
       if(!is_inputted && is_tapped()) {
         register_code(KC_MHEN);
         unregister_code(KC_MHEN);
-        is_new_gata = false;
+        disable_new_geta();
         layer_off(_N_GETA);
       }
       return false;
@@ -823,7 +536,7 @@ bool process_record_custom_layer(bool pressed, bool is_inputted){
       if(!is_inputted && is_tapped()) {
         register_code(KC_HENK);
         unregister_code(KC_HENK);
-        is_new_gata = true;
+        enable_new_geta();
         layer_on(_N_GETA);
       }
       return false;
@@ -1302,8 +1015,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
       return false;
   }
 
-  if(is_new_gata && !process_record_new_gata(keycode, record)){
-    //IS_INPUT = true;
+  if(!process_record_new_gata(keycode, record)){
     return false;
   }
 
